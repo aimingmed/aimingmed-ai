@@ -1,0 +1,6 @@
+langchain
+google-generativeai
+chromadb
+SQLAlchemy
+weights&biases
+langsmith

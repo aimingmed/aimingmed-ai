@@ -192,3 +192,12 @@ data/*
 **/output/*.csv
 !**/output/.gitkeep
 !**/data/.gitkeep
+
+# ignore macos files
+.DS_Store
+
+# ignore llmops
+app/llmops/*
+
+# ignore wandb files
+**/wandb/
