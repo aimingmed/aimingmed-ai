@@ -196,9 +196,12 @@ data/*
 # ignore macos files
 .DS_Store
 
-# ignore llmops
-app/llmops/*
 
 # ignore wandb files
 **/wandb/
 **/.config.py
+**/chroma_db/*
+**/*.pdf
+**/.env
+**/llm-template2/*
+**/llmops/outputs/*

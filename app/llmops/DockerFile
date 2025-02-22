@@ -1,0 +1,32 @@
+FROM ubuntu:latest
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    poppler-utils \
+    tesseract-ocr \
+    tesseract-ocr-chi-sim \
+    tesseract-ocr-chi-tra \
+    python3.9 \
+    python3.9-distutils \
+    python3-pip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Python libraries
+COPY MLproject python_env.yml run.py requirements.txt /app/
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Set environment variables
+ENV TESSDATA_PREFIX="/usr/share/tessdata"
+
+
+# Run the script (optional, you can run it when you start the container)
+# CMD ["python3.9", "chinese_pdf_embed.py"]

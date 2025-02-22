@@ -1,0 +1,29 @@
+name: get_documents
+python_env: python_env.yml
+
+entry_points:
+  main:
+    parameters:
+
+      document_folder:
+        description: Documents to download
+        type: string
+
+      path_document_folder:
+        description: Path to the folder containing the documents
+        type: string
+
+      artifact_name:
+        description: Name for the output artifact
+        type: string
+
+      artifact_type:
+        description: Type of the output artifact. This will be used to categorize the artifact in the W&B
+                     interface
+        type: string
+
+      artifact_description:
+        description: A brief description of the output artifact
+        type: string
+
+    command: "python run.py {document_folder} {path_document_folder} {artifact_name} {artifact_type} {artifact_description}"
