@@ -64,7 +64,7 @@ def go(config: DictConfig):
                     "output_artifact": "chromdb.zip",
                     "output_type": "chromdb",
                     "output_description": "Scanned Documents in pdf to be read amd stored in chromdb",
-                    "gemini_api_key": GEMINI_API_KEY,
+                    "embedding_model": config["etl"]["embedding_model"]
                 },
             )
 

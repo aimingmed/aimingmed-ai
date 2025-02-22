@@ -10,6 +10,7 @@ build_dependencies:
   - pytesseract
   - pdf2image
   - langchain
+  - sentence_transformers
 # Dependencies required to run the project.
 dependencies:
   - mlflow==2.8.1

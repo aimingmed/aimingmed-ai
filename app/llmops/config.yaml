@@ -6,4 +6,5 @@ main:
 etl:
   document_folder: "documents"
   path_document_folder: "../../../../data"
+  embedding_model: "paraphrase-multilingual-mpnet-base-v2"
   

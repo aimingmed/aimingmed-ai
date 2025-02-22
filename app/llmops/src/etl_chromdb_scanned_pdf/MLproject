@@ -21,8 +21,8 @@ entry_points:
         description: Description for the artifact
         type: string
 
-      gemini_api_key:
-        description: API key for Gemini
+      embedding_model:
+        description: Fully-qualified name for the embedding model
         type: string
 
 
@@ -31,4 +31,4 @@ entry_points:
                       --output_artifact {output_artifact} \
                       --output_type {output_type} \
                       --output_description {output_description} \
-                      --gemini_api_key {gemini_api_key}
+                      --embedding_model {embedding_model}
