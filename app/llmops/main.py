@@ -10,6 +10,7 @@ from decouple import config
 
 _steps = [
     "get_documents",
+    "etl_chromdb_pdf",
     "etl_chromdb_scanned_pdf",
     "data_check",
     "data_split",
@@ -50,9 +51,21 @@ def go(config: DictConfig):
                 parameters={
                     "document_folder": config["etl"]["document_folder"],
                     "path_document_folder": config["etl"]["path_document_folder"],
-                    "artifact_name": "documents",
+                    "artifact_name": config["etl"]["input_artifact_name"],
                     "artifact_type": "raw_data",
                     "artifact_description": "Raw file as downloaded"
+                },
+            )
+        if "etl_chromdb_pdf" in active_steps:
+            _ = mlflow.run(
+                os.path.join(hydra.utils.get_original_cwd(), "src", "etl_chromdb_pdf"),
+                "main",
+                parameters={
+                    "input_artifact": f'{config["etl"]["input_artifact_name"]}:latest',
+                    "output_artifact": "chromdb.zip",
+                    "output_type": "chromdb",
+                    "output_description": "Documents in pdf to be read and stored in chromdb",
+                    "embedding_model": config["etl"]["embedding_model"]
                 },
             )
         if "etl_chromdb_scanned_pdf" in active_steps:
@@ -60,10 +73,10 @@ def go(config: DictConfig):
                 os.path.join(hydra.utils.get_original_cwd(), "src", "etl_chromdb_scanned_pdf"),
                 "main",
                 parameters={
-                    "input_artifact": "documents:latest",
+                    "input_artifact": f'{config["etl"]["input_artifact_name"]}:latest',
                     "output_artifact": "chromdb.zip",
                     "output_type": "chromdb",
-                    "output_description": "Scanned Documents in pdf to be read amd stored in chromdb",
+                    "output_description": "Scanned Documents in pdf to be read and stored in chromdb",
                     "embedding_model": config["etl"]["embedding_model"]
                 },
             )

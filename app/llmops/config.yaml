@@ -4,7 +4,8 @@ main:
   experiment_name: development
   steps: all
 etl:
-  document_folder: "documents"
+  input_artifact_name: documents
+  document_folder: documents
   path_document_folder: "../../../../data"
-  embedding_model: "paraphrase-multilingual-mpnet-base-v2"
+  embedding_model: paraphrase-multilingual-mpnet-base-v2
   
