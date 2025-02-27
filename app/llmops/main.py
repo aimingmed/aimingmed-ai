@@ -10,7 +10,7 @@ from decouple import config
 _steps = [
     "get_documents",
     "etl_chromdb_pdf",
-    "etl_chromdb_scanned_pdf",
+    "etl_chromdb_scanned_pdf", # the performance for scanned pdf may not be good
     "chain_of_thought"
 ]
 

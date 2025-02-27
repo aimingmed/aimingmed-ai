@@ -91,8 +91,7 @@ the configuration file. It can be accessed from the `go` function as
 NOTE: do NOT hardcode any parameter when writing the pipeline. All the parameters should be
 accessed from the configuration file.
 
-NOTE: Make sure the dataset file DataScientist_CaseStudy_Dataset.xlsx is located at app/mlops/components/get_data/data before
-start running the pipeline.
+NOTE: Make sure you have the .env file located at the llmops/src/chain_of_thought (it contains the API keys for the LLM chat models)
 
 ### Running the entire pipeline or just a selection of steps
 
@@ -101,44 +100,36 @@ then you can execute as usual:
 
 ```bash
 # not recommended for now -- still in development stage
-> cd app/molops
+> cd app/llmops
 > pipenv shell
 > mlflow run .
 ```
 
 This will run the entire pipeline. Please use the following to run working full pipeline for the project.
 You may configure all settings for both training, testing, and production testing at the app/mlops/config.yaml.
-Check all the `_steps` list you can run at app/mlops/main.py
+Check all the `_steps` list you can run at app/llmops/main.py
 
 ```bash
-> cd app/mlops
+> cd app/llmops
 > pipenv shell
-> mlflow run . -P steps=download,basic_cleaning
-# before starting the ETL data_check step go to the basic_cleaning run in the wandb and assign
-# the output artifact, clean_sample.csv with new alias, i.e. "reference"
-> mlflow run . -P steps=data_check
-# You may want to consider stratifying the data by "Sex" for
-# for the train and test split, and stratify by "Sale_MF" for the propensity model if you are training "Sale_MF" model
-> mlflow run . -P steps=data_split
-# You may run the model training steps with train_random_forest_propensity,train_random_forest_revenue,
-# and train_lasso_revenue.
-# You first need to promote the best model export to "prod" before you can run test_model
-# and test_production steps
+> mlflow run . -P steps=get_documents,etl_chromdb_pdf,chain_of_thought
+> mlflow run . -P steps=chain_of_thought
+
 
 ```
 
 When developing or troubleshooting, it is useful to be able to run one step at a time. Say you want to run only
-the `basic_cleaning` step. The `main.py` is written so that the steps are defined at the top of the file, in the
+the `chain_of_thought` step. The `main.py` is written so that the steps are defined at the top of the file, in the
 `_steps` list, and can be selected by using the `steps` parameter on the command line:
 
 ```bash
-> mlflow run . -P steps=basic_cleaning
+> mlflow run . -P steps=chain_of_thought
 ```
 
-If you want to run the `basic_cleaning` and the `data_check` steps, you can similarly do:
+If you want to run the `etl_chromdb_pdf` and the `chain_of_thought` steps, you can similarly do:
 
 ```bash
-> mlflow run . -P steps=basic_cleaning,data_check
+> mlflow run . -P steps=etl_chromdb_pdf,chain_of_thought
 ```
 
 You can override any other parameter in the configuration file using the Hydra syntax, by
@@ -147,8 +138,8 @@ modeling -> product_to_train to Sale_MF and modeling-> stratify_by to Sale_MF:
 
 ```bash
 > mlflow run . \
-  -P steps=train_random_forest_propensity \
-  -P hydra_options="modeling.product_to_train='Sale_MF' modeling.stratify_by='Sale_MF'"
+  -P steps=chain_of_thought \
+  -P hydra_options="prompt_engineering.chat_model_provider='kimi' prompt_engineering.query='怎么治疗有kras的肺癌?'"
 ```
 
 ### Test the model perfomance on the test samples
@@ -167,16 +158,16 @@ First define the necessary parameters at the config.yaml at production.test_csv 
 > cd app/mlops
 > pipenv shell
 > mlflow run . \
-  -P steps=test_production \
-  -P hydra_options="production.test_csv='clean_sample_test.csv'"
+  -P steps=chain_of_thought \
+  -P hydra_options="prompt_engineering.query='怎么治疗有kras的肺癌?'"
 # OR you can run the following to test the production samples
-> mlflow run https://github.com/hkailee/financial-product-marketing-optimization.git \
+> mlflow run https://github.com/aimingmed/aimingmed-ai \
              -v v1.0.0 \
-              -P steps=test_production \
-             -P hydra_options="production.test_csv='clean_sample_test.csv'"
+             -P steps=chain_of_thought \
+             -P hydra_options="prompt_engineering.query='怎么治疗有kras的肺癌?'"
 ```
 
 ## Wandb public workspace URL for this project
 
 Click the link below to see the wandb public workspace for this project. You can see the model training and testing results, as well as the production testing results.
-https://wandb.ai/leehongkai/financial-product-marketing-optimization/table
+https://wandb.ai/aimingmed/aimingmed-ai

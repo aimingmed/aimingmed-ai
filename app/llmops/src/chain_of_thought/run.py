@@ -9,6 +9,7 @@ from langchain.prompts import PromptTemplate
 from sentence_transformers import SentenceTransformer
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
+from langchain_community.llms.moonshot import Moonshot
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -16,7 +17,7 @@ logger = logging.getLogger()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
 DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
-
+MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str)
 
 def go(args):
     run = wandb.init(job_type="chain_of_thought", entity='aimingmed')
@@ -58,6 +59,17 @@ def go(args):
             temperature=0,
             max_retries=3
             )
+        
+    elif args.chat_model_provider == "moonshot":
+        # Initialize Moonshot model
+        llm = Moonshot(
+            model="moonshot-v1-128k", 
+            temperature=0,
+            max_tokens=None,
+            timeout=None,
+            max_retries=2,
+            api_key=MOONSHOT_API_KEY
+        )
         
 
     # Chain of Thought Prompt
