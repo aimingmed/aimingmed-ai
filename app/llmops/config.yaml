@@ -9,5 +9,6 @@ etl:
   path_document_folder: "../../../../data"
   embedding_model: paraphrase-multilingual-mpnet-base-v2
 prompt_engineering:
+  chat_model_provider: deepseek
   query: "怎么治疗肺癌?"
   

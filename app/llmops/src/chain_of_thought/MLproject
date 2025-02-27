@@ -17,8 +17,13 @@ entry_points:
         description: Fully-qualified name for the embedding model
         type: string
 
+      chat_model_provider:
+        description: Fully-qualified name for the chat model provider
+        type: string
+
     
     command: >-
         python run.py --query {query} \
                       --input_chromadb_artifact {input_chromadb_artifact} \
-                      --embedding_model {embedding_model}
+                      --embedding_model {embedding_model} \
+                      --chat_model_provider {chat_model_provider}

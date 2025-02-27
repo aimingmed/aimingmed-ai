@@ -8,12 +8,14 @@ from decouple import config
 from langchain.prompts import PromptTemplate
 from sentence_transformers import SentenceTransformer
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_deepseek import ChatDeepSeek
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
+DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
 
 
 def go(args):
@@ -37,13 +39,32 @@ def go(args):
     # Formulate a question
     question = args.query
 
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GEMINI_API_KEY)
-    
+    if args.chat_model_provider == "deepseek":
+        # Initialize DeepSeek model
+        llm = ChatDeepSeek(
+            model="deepseek-chat", 
+            temperature=0,
+            max_tokens=None,
+            timeout=None,
+            max_retries=2,
+            api_key=DEEKSEEK_API_KEY
+        )
+        
+    elif args.chat_model_provider == "gemini":
+        # Initialize Gemini model
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-flash", 
+            google_api_key=GEMINI_API_KEY,
+            temperature=0,
+            max_retries=3
+            )
+        
 
     # Chain of Thought Prompt
     cot_template = """Let's think step by step. 
     Given the following document in text: {documents_text}
     Question: {question}
+    Reply with language that is similar to the language used with asked question.
     """
     cot_prompt = PromptTemplate(template=cot_template, input_variables=["documents_text", "question"])
     cot_chain = cot_prompt | llm
@@ -97,6 +118,13 @@ if __name__ == "__main__":
         type=str,
         default="paraphrase-multilingual-mpnet-base-v2",
         help="Sentence Transformer model name"
+    )
+
+    parser.add_argument(
+        "--chat_model_provider",
+        type=str,
+        default="gemini",
+        help="Chat model provider"
     )
 
     args = parser.parse_args()

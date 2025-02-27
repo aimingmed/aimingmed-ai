@@ -3,7 +3,6 @@ import json
 import mlflow
 import tempfile
 import os
-import wandb
 import hydra
 from omegaconf import DictConfig
 from decouple import config
@@ -14,9 +13,6 @@ _steps = [
     "etl_chromdb_scanned_pdf",
     "chain_of_thought"
 ]
-
-GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
-
 
 
 # This automatically reads in the configuration
@@ -71,7 +67,6 @@ def go(config: DictConfig):
                     "embedding_model": config["etl"]["embedding_model"]
                 },
             )
-        
         if "chain_of_thought" in active_steps:
             _ = mlflow.run(
                 os.path.join(hydra.utils.get_original_cwd(), "src", "chain_of_thought"),
@@ -80,6 +75,7 @@ def go(config: DictConfig):
                     "query": config["prompt_engineering"]["query"],
                     "input_chromadb_artifact": "chromdb.zip:latest",
                     "embedding_model": config["etl"]["embedding_model"],
+                    "chat_model_provider": config["prompt_engineering"]["chat_model_provider"]
                 },
             )
 
