@@ -1,0 +1,24 @@
+name: chain_of_thought
+python_env: python_env.yml
+
+entry_points:
+  main:
+    parameters:
+
+      query:
+        description: Query to run
+        type: string
+
+      input_chromadb_artifact:
+        description: Fully-qualified name for the input artifact
+        type: string
+
+      embedding_model:
+        description: Fully-qualified name for the embedding model
+        type: string
+
+    
+    command: >-
+        python run.py --query {query} \
+                      --input_chromadb_artifact {input_chromadb_artifact} \
+                      --embedding_model {embedding_model}

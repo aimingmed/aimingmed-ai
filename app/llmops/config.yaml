@@ -8,4 +8,6 @@ etl:
   document_folder: documents
   path_document_folder: "../../../../data"
   embedding_model: paraphrase-multilingual-mpnet-base-v2
+prompt_engineering:
+  query: "怎么治疗肺癌?"
   

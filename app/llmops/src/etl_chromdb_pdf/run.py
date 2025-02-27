@@ -70,7 +70,7 @@ def go(args):
 
 
     # Initialize embedding model (do this ONCE)
-    model_embedding = SentenceTransformer('all-mpnet-base-v2')  # Or a multilingual model
+    model_embedding = SentenceTransformer(args.embedding_model)  # Or a multilingual model
 
 
     # Create database, delete the database directory if it exists
@@ -114,6 +114,30 @@ def go(args):
                         ids=[f'{file[:-4]}-{str(i)}'],
                         embeddings=[model_embedding.encode(split.page_content)]
                     )
+
+    # Create a new artifact
+    artifact = wandb.Artifact(
+        args.output_artifact,
+        type=args.output_type,
+        description=args.output_description
+    )
+
+    # zip the database folder first
+    shutil.make_archive(db_path, 'zip', db_path)
+
+    # Add the database to the artifact
+    artifact.add_file(db_path + '.zip')
+
+    # Log the artifact
+    run.log_artifact(artifact)
+
+    # Finish the run
+    run.finish()
+
+    # clean up
+    os.remove(db_path + '.zip')
+    os.remove(db_path)
+
 
 if __name__ == "__main__":
 

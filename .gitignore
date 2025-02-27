@@ -205,3 +205,4 @@ data/*
 **/.env
 **/llm-template2/*
 **/llmops/outputs/*
+**/*.zip

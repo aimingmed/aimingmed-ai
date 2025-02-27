@@ -12,16 +12,7 @@ _steps = [
     "get_documents",
     "etl_chromdb_pdf",
     "etl_chromdb_scanned_pdf",
-    "data_check",
-    "data_split",
-    "train_random_forest_propensity",
-    "train_random_forest_revenue",
-    "train_lasso_revenue",
-    # NOTE: We do not include this in the steps so it is not run by mistake.
-    # You first need to promote a model export to "prod" before you can run this,
-    # then you need to run this step explicitly
-   "test_model",
-   "test_production"
+    "chain_of_thought"
 ]
 
 GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
@@ -80,136 +71,15 @@ def go(config: DictConfig):
                     "embedding_model": config["etl"]["embedding_model"]
                 },
             )
-
-        if "data_check" in active_steps:
-            _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "data_check"),
-                "main",
-                parameters={
-                    "csv": f"{config['data_check']['csv_to_check']}:latest",
-                    "ref": "clean_sample.csv:reference",
-                    "kl_threshold": config['data_check']['kl_threshold'],
-                    "min_age": config['etl']['min_age'],
-                    "max_age": config['etl']['max_age'],
-                    "min_tenure": config['etl']['min_tenure'],
-                    "max_tenure": config['etl']['max_tenure']
-                },
-            )
-
-        if "data_split" in active_steps:
-            _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "components", "train_val_test_split"),
-                "main",
-                parameters={
-                    "input": "clean_sample.csv:latest",
-                    "test_size": config['modeling']['test_size'],
-                    "random_seed": config['modeling']['random_seed'],
-                    "stratify_by": config['modeling']['stratify_by'],
-                },
-            )
-
-        if "train_random_forest_propensity" in active_steps:
-
-            # NOTE: we need to serialize the random forest configuration into JSON
-            rf_config = os.path.abspath("rf_config.json")
-            with open(rf_config, "w+") as fp:
-                json.dump(dict(config["modeling"]["random_forest_classifier_propensity"].items()), fp)  # DO NOT TOUCH
-
-            # NOTE: use the rf_config we created as the rf_config parameter for the train_random_forest
-            # step
-            _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "train_random_forest_propensity"),
-                "main",
-                parameters={
-                    "trainval_artifact": "trainval_data.csv:latest",
-                    "val_size": config['modeling']['val_size'],
-                    "random_seed": config['modeling']['random_seed'],
-                    "ls_output_columns": ','.join(config['modeling']['ls_output_columns']),
-                    "product": config['modeling']['product_to_train'],
-                    "stratify_by": config['modeling']['stratify_by'],
-                    "n_folds": config['modeling']['n_folds'],
-                    "rf_config": rf_config,
-                    "output_artifact": "random_forest_export",
-                },
-            )
         
-        if "train_random_forest_revenue" in active_steps:
-
-            # NOTE: we need to serialize the random forest configuration into JSON
-            rf_config = os.path.abspath("rf_config_revenue.json")
-            with open(rf_config, "w+") as fp:
-                json.dump(dict(config["modeling"]["random_forest_regression_revenue"].items()), fp)
-            
-            # NOTE: use the rf_config we created as the rf_config parameter for the train_random_forest
-            # step
+        if "chain_of_thought" in active_steps:
             _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "train_random_forest_revenue"),
+                os.path.join(hydra.utils.get_original_cwd(), "src", "chain_of_thought"),
                 "main",
                 parameters={
-                    "trainval_artifact": "trainval_data.csv:latest",
-                    "val_size": config['modeling']['val_size'],
-                    "random_seed": config['modeling']['random_seed'],
-                    "ls_output_columns": ','.join(config['modeling']['ls_output_columns']),
-                    "product": config['modeling']['product_to_train'],
-                    "stratify_by": config['modeling']['stratify_by'],
-                    "n_folds": config['modeling']['n_folds'],
-                    "rf_config": rf_config,
-                    "output_artifact": "random_forest_export",
-                },
-            )
-
-        if "train_lasso_revenue" in active_steps:
-
-            # NOTE: use the lasso_config we created as the lasso_config parameter for the train_lasso
-            lasso_config = os.path.abspath("lasso_config.json")
-            with open(lasso_config, "w+") as fp:
-                json.dump(dict(config["modeling"]["lasso_regression_revenue"].items()), fp)
-
-            _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "train_lasso_revenue"),
-                "main",
-                parameters={
-                    "trainval_artifact": "trainval_data.csv:latest",
-                    "val_size": config['modeling']['val_size'],
-                    "random_seed": config['modeling']['random_seed'],
-                    "ls_output_columns": ','.join(config['modeling']['ls_output_columns']),
-                    "product": config['modeling']['product_to_train'],
-                    "stratify_by": config['modeling']['stratify_by'],
-                    "n_folds": config['modeling']['n_folds'],
-                    "lasso_config": lasso_config,
-                    "output_artifact": "lasso_export",
-                },
-            )
-
-        if "test_model" in active_steps:
-
-            _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "components", "test_model"),
-                "main",
-                parameters={
-                    "model_propensity_cc": config['best_model_propensity']['propensity_cc'],
-                    "model_propensity_cl": config['best_model_propensity']['propensity_cl'],
-                    "model_propensity_mf": config['best_model_propensity']['propensity_mf'],
-                    "model_revenue_cc": config['best_model_revenue']['revenue_cc'],
-                    "model_revenue_cl": config['best_model_revenue']['revenue_cl'],
-                    "model_revenue_mf": config['best_model_revenue']['revenue_mf'],
-                    "test_dataset": "test_data.csv:latest",
-                },
-            )
-        
-        if "test_production" in active_steps:
-            
-            _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "components", "test_production"),
-                "main",
-                parameters={
-                    "model_propensity_cc": config['best_model_propensity']['propensity_cc'],
-                    "model_propensity_cl": config['best_model_propensity']['propensity_cl'],
-                    "model_propensity_mf": config['best_model_propensity']['propensity_mf'],
-                    "model_revenue_cc": config['best_model_revenue']['revenue_cc'],
-                    "model_revenue_cl": config['best_model_revenue']['revenue_cl'],
-                    "model_revenue_mf": config['best_model_revenue']['revenue_mf'],
-                    "test_dataset": f"{config['production']['test_csv']}:latest",
+                    "query": config["prompt_engineering"]["query"],
+                    "input_chromadb_artifact": "chromdb.zip:latest",
+                    "embedding_model": config["etl"]["embedding_model"],
                 },
             )
 
