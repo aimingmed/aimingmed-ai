@@ -16,6 +16,7 @@ docker = "*"
 ipywidgets = "*"
 ipykernel = "*"
 jupyter = "*"
+chromadb = "*"
 
 [dev-packages]
 pytest = "==8.0.0"
