@@ -1,0 +1,29 @@
+name: test_rag_cot
+python_env: python_env.yml
+
+entry_points:
+  main:
+    parameters:
+
+      query:
+        description: Query to run
+        type: string
+
+      input_chromadb_local:
+        description: path to input chromadb local
+        type: string
+
+      embedding_model:
+        description: Fully-qualified name for the embedding model
+        type: string
+
+      chat_model_provider:
+        description: Fully-qualified name for the chat model provider
+        type: string
+
+    
+    command: >-
+        python run.py --query {query} \
+                      --input_chromadb_local {input_chromadb_local} \
+                      --embedding_model {embedding_model} \
+                      --chat_model_provider {chat_model_provider}
