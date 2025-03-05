@@ -206,3 +206,4 @@ data/*
 **/llm-template2/*
 **/llmops/outputs/*
 **/*.zip
+**/llm-examples/*
