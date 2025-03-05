@@ -9,6 +9,7 @@ from sentence_transformers import SentenceTransformer
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
 from langchain_community.llms.moonshot import Moonshot
+import sys
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -18,10 +19,15 @@ GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
 DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
 MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str)
 
+def stream_output(text):
+    for char in text:
+        print(char, end="")
+        sys.stdout.flush()
+
 def go(args):
 
     # start a new MLflow run
-    with mlflow.start_run(experiment_id=mlflow.get_experiment_by_name("development").experiment_id, run_name="etl_chromdb_pdf"):
+    with mlflow.start_run(experiment_id=mlflow.get_experiment_by_name("development").experiment_id, run_name="etl_chromadb_pdf"):
         existing_params = mlflow.get_run(mlflow.active_run().info.run_id).data.params
         if 'query' not in existing_params:
             mlflow.log_param('query', args.query)
@@ -95,7 +101,9 @@ def go(args):
 
         # Generate chain of thought
         cot_output = cot_chain.invoke({"documents_text": documents_text, "question": question})
-        print("Chain of Thought: ", cot_output)
+        print("Chain of Thought: ", end="")
+        stream_output(cot_output.content)
+        print()
 
         # Answer Prompt
         answer_template = """Given the chain of thought: {cot}
@@ -107,7 +115,9 @@ def go(args):
 
         # Generate answer
         answer_output = answer_chain.invoke({"cot": cot_output, "question": question})
-        print("Answer: ", answer_output)
+        print("Answer: ", end="")
+        stream_output(answer_output.content)
+        print()
 
 
 if __name__ == "__main__":

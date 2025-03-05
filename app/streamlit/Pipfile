@@ -5,13 +5,19 @@ name = "pypi"
 
 [packages]
 streamlit = "==1.28"
-langchain = "==0.0.217"
-openai = "==1.2"
+langchain = "*"
 duckduckgo-search = "*"
-anthropic = "==0.3.0"
-trubrics = "==1.4.3"
+anthropic = "*"
+trubrics = "*"
 streamlit-feedback = "*"
 langchain-community = "*"
+watchdog = "*"
+mlflow = "==2.8.1"
+python-decouple = "*"
+langchain_google_genai = "*"
+langchain-deepseek = "*"
+sentence_transformers = "*"
+chromadb = "*"
 
 [dev-packages]
 
