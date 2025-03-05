@@ -1,4 +1,4 @@
-name: chain_of_thought
+name: rag_cot
 python_env: python_env.yml
 
 entry_points:

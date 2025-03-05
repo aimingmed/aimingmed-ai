@@ -1,4 +1,4 @@
-name: etl_chromdb_scanned_pdf
+name: etl_chromadb_pdf
 python_env: python_env.yml
 
 entry_points:
