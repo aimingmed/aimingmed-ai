@@ -7,8 +7,10 @@ etl:
   input_artifact_name: documents
   document_folder: documents
   path_document_folder: "../../../../data"
+  run_id_documents: None
   embedding_model: paraphrase-multilingual-mpnet-base-v2
 prompt_engineering:
-  chat_model_provider: kimi
+  run_id_chromadb: None
+  chat_model_provider: moonshot
   query: "怎么治疗有kras的肺癌?"
   
