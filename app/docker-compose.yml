@@ -1,11 +1,10 @@
 version: "3.9"
-services:
-  chroma:
-    image: ghcr.io/chroma-core/chroma:latest
-    ports:
-      - "8000:8000"
-    volumes:
-      - chroma_data:/chroma
 
-volumes:
-  chroma_data:
+services:
+  streamlit:
+    build: ./streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./llmops/src/rag_cot/chroma_db:/app/llmops/src/rag_cot/chroma_db
+

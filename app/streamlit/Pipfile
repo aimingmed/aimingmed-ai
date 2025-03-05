@@ -20,6 +20,10 @@ sentence_transformers = "*"
 chromadb = "*"
 
 [dev-packages]
+pytest = "==8.0.0"
+pytest-cov = "==4.1.0"
+pytest-mock = "==3.10.0"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.11"
