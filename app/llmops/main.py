@@ -120,7 +120,7 @@ def go(config: DictConfig):
                 if run_id is None:
                     raise ValueError("No run_id found with artifact logged as documents")
             else:
-                run_id = config["etl"]["run_id_documents"]
+                run_id = config["prompt_engineering"]["run_id_chromadb"]
 
             _ = mlflow.run(
                 os.path.join(hydra.utils.get_original_cwd(), "src", "rag_cot"),
@@ -132,6 +132,21 @@ def go(config: DictConfig):
                     "chat_model_provider": config["prompt_engineering"]["chat_model_provider"]
                 },
             )
+
+
+        if "test_rag_cot" in active_steps:
+
+            _ = mlflow.run(
+                os.path.join(hydra.utils.get_original_cwd(), "components", "test_rag_cot"),
+                "main",
+                parameters={
+                    "query": config["prompt_engineering"]["query"],
+                    "input_chromadb_local": os.path.join(hydra.utils.get_original_cwd(), "src", "rag_cot", "chroma_db"),
+                    "embedding_model": config["etl"]["embedding_model"],
+                    "chat_model_provider": config["prompt_engineering"]["chat_model_provider"]
+                },
+            )
+
 
 if __name__ == "__main__":
     go()
