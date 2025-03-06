@@ -1,5 +1,4 @@
 import os
-import subprocess
 import streamlit as st
 import chromadb
 from decouple import config

@@ -1,11 +1,8 @@
-import json
-
 import mlflow
 import tempfile
 import os
 import hydra
 from omegaconf import DictConfig
-from decouple import config
 
 _steps = [
     "get_documents",
@@ -27,7 +24,7 @@ def go(config: DictConfig):
     active_steps = steps_par.split(",") if steps_par != "all" else _steps
 
     # Move to a temporary directory
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory():
 
         if "get_documents" in active_steps:
             # Download file and load in W&B
