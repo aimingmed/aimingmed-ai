@@ -10,8 +10,6 @@ import shutil
 
 import chromadb
 # from openai import OpenAI
-from typing import List
-import numpy as np
 import pytesseract as pt
 from pdf2image import convert_from_path
 from langchain.schema import Document

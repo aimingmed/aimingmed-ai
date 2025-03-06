@@ -16,7 +16,7 @@ def go(args):
     zip_path = os.path.join(args.path_document_folder, f"{args.document_folder}.zip")
     shutil.make_archive(zip_path.replace('.zip', ''), 'zip', args.path_document_folder, args.document_folder)
 
-    with mlflow.start_run(experiment_id=mlflow.get_experiment_by_name("development").experiment_id) as run:
+    with mlflow.start_run(experiment_id=mlflow.get_experiment_by_name("development").experiment_id):
 
         existing_params = mlflow.get_run(mlflow.active_run().info.run_id).data.params
         if 'artifact_description' not in existing_params:

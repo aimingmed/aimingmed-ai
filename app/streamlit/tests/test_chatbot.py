@@ -1,7 +1,5 @@
-import os
 import pytest
 import chromadb
-from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
 from langchain_community.llms.moonshot import Moonshot
@@ -9,7 +7,6 @@ from langchain_community.llms.moonshot import Moonshot
 import sys
 sys.path.append(".")
 import streamlit as st
-import pytest
 from unittest.mock import patch
 from Chatbot import CHAT_MODEL_PROVIDER, INPUT_CHROMADB_LOCAL, COLLECTION_NAME, cot_template, answer_template
 
