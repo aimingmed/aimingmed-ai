@@ -1,4 +1,4 @@
-![Continuous Integration and Delivery](https://github.com/aimingmed/aimingmed-ai/workflows/Continuous%20Integration%20and%20Delivery/badge.svg?branch=develop)
+[![App testing](https://github.com/aimingmed/aimingmed-ai/actions/workflows/app-testing.yml/badge.svg?branch=develop)](https://github.com/aimingmed/aimingmed-ai/actions/workflows/app-testing.yml)
 
 ## Important note:
 
