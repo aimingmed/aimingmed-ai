@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app/streamlit
 
-COPY Pipfile Pipfile.lock ./
+COPY Pipfile ./
 
 RUN pip install pipenv && pipenv install --system --deploy
 
