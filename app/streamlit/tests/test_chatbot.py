@@ -1,7 +1,5 @@
-import os
 import pytest
 import chromadb
-from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
 from langchain_community.llms.moonshot import Moonshot
