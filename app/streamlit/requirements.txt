@@ -11,4 +11,4 @@ python-decouple
 langchain_google_genai
 langchain-deepseek
 sentence_transformers
-mlflow
+watchdog
