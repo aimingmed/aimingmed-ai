@@ -7,7 +7,6 @@ from langchain_community.llms.moonshot import Moonshot
 import sys
 sys.path.append(".")
 import streamlit as st
-import pytest
 from unittest.mock import patch
 from Chatbot import CHAT_MODEL_PROVIDER, INPUT_CHROMADB_LOCAL, COLLECTION_NAME, cot_template, answer_template
 
