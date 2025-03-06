@@ -11,6 +11,6 @@ etl:
   embedding_model: paraphrase-multilingual-mpnet-base-v2
 prompt_engineering:
   run_id_chromadb: None
-  chat_model_provider: moonshot
+  chat_model_provider: gemini
   query: "怎么治疗有kras的肺癌?"
   
