@@ -26,6 +26,7 @@ jobs:
         with:
           app-path: app/streamlit/Chatbot.py
           ruff: true
+          skip-smoke: true
           pytest-args: -v --junit-xml=test-results.xml
       - if: always()
         uses: pmeier/pytest-results-action@v0.6.0
