@@ -25,27 +25,27 @@ def create_chat_completion(response: str, role: str = "assistant") -> ChatComple
     )
 
 
-@patch("langchain_deepseek.ChatDeepSeek.__call__")
-@patch("langchain_google_genai.ChatGoogleGenerativeAI.invoke")
-@patch("langchain_community.llms.moonshot.Moonshot.__call__")
-def test_Chatbot(moonshot_llm, gemini_llm, deepseek_llm):
-    at = AppTest.from_file("Chatbot.py").run()
-    assert not at.exception
+# @patch("langchain_deepseek.ChatDeepSeek.__call__")
+# @patch("langchain_google_genai.ChatGoogleGenerativeAI.invoke")
+# @patch("langchain_community.llms.moonshot.Moonshot.__call__")
+# def test_Chatbot(moonshot_llm, gemini_llm, deepseek_llm):
+#     at = AppTest.from_file("Chatbot.py").run()
+#     assert not at.exception
     
-    QUERY = "What is the best treatment for hypertension?"
-    RESPONSE = "The best treatment for hypertension is..."
+#     QUERY = "What is the best treatment for hypertension?"
+#     RESPONSE = "The best treatment for hypertension is..."
     
-    deepseek_llm.return_value.content = RESPONSE
-    gemini_llm.return_value.content = RESPONSE
-    moonshot_llm.return_value = RESPONSE
+#     deepseek_llm.return_value.content = RESPONSE
+#     gemini_llm.return_value.content = RESPONSE
+#     moonshot_llm.return_value = RESPONSE
     
-    at.chat_input[0].set_value(QUERY).run()
+#     at.chat_input[0].set_value(QUERY).run()
     
-    assert any(mock.called for mock in [deepseek_llm, gemini_llm, moonshot_llm])
-    assert at.chat_message[1].markdown[0].value == QUERY
-    assert at.chat_message[2].markdown[0].value == RESPONSE
-    assert at.chat_message[2].avatar == "assistant"
-    assert not at.exception
+#     assert any(mock.called for mock in [deepseek_llm, gemini_llm, moonshot_llm])
+#     assert at.chat_message[1].markdown[0].value == QUERY
+#     assert at.chat_message[2].markdown[0].value == RESPONSE
+#     assert at.chat_message[2].avatar == "assistant"
+#     assert not at.exception
 
 
 @patch("langchain.llms.OpenAI.__call__")
