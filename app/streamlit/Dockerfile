@@ -9,6 +9,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY Chatbot.py .
 COPY .env .
 
+# Run python to initialize download of SentenceTransformer model
+COPY initialize_sentence_transformer.py .
+RUN python initialize_sentence_transformer.py
+
 EXPOSE 8501
 
 ENTRYPOINT ["streamlit", "run", "Chatbot.py"]

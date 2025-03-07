@@ -8,7 +8,8 @@ _steps = [
     "get_documents",
     "etl_chromadb_pdf",
     "etl_chromadb_scanned_pdf", # the performance for scanned pdf may not be good
-    "rag_cot",
+    "rag_cot_evaluation",
+    "test_rag_cot"
 ]
 
 
@@ -100,7 +101,7 @@ def go(config: DictConfig):
                     "embedding_model": config["etl"]["embedding_model"]
                 },
             )
-        if "rag_cot" in active_steps:
+        if "rag_cot_evaluation" in active_steps:
 
             if config["prompt_engineering"]["run_id_chromadb"] == "None":
                 # Look for run_id that has artifact logged as documents
@@ -120,7 +121,7 @@ def go(config: DictConfig):
                 run_id = config["prompt_engineering"]["run_id_chromadb"]
 
             _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "rag_cot"),
+                os.path.join(hydra.utils.get_original_cwd(), "src", "rag_cot_evaluation"),
                 "main",
                 parameters={
                     "query": config["prompt_engineering"]["query"],
@@ -138,7 +139,7 @@ def go(config: DictConfig):
                 "main",
                 parameters={
                     "query": config["prompt_engineering"]["query"],
-                    "input_chromadb_local": os.path.join(hydra.utils.get_original_cwd(), "src", "rag_cot", "chroma_db"),
+                    "input_chromadb_local": os.path.join(hydra.utils.get_original_cwd(), "src", "rag_cot_evaluation", "chroma_db"),
                     "embedding_model": config["etl"]["embedding_model"],
                     "chat_model_provider": config["prompt_engineering"]["chat_model_provider"]
                 },
