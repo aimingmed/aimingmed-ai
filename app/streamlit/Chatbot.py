@@ -16,13 +16,13 @@ torch.classes.__path__ = [os.path.join(torch.__path__[0], torch.classes.__file__
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
-DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
-MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str)
-CHAT_MODEL_PROVIDER = config("CHAT_MODEL_PROVIDER", cast=str)
-INPUT_CHROMADB_LOCAL = config("INPUT_CHROMADB_LOCAL", cast=str)
-EMBEDDING_MODEL = config("EMBEDDING_MODEL", cast=str)
-COLLECTION_NAME = config("COLLECTION_NAME", cast=str)
+GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str, default="123456")
+DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str, default="123456")
+MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str, default="123456")
+CHAT_MODEL_PROVIDER = config("CHAT_MODEL_PROVIDER", cast=str, default="gemini")
+INPUT_CHROMADB_LOCAL = config("INPUT_CHROMADB_LOCAL", cast=str, default="../llmops/src/rag_cot_evaluation/chroma_db")
+EMBEDDING_MODEL = config("EMBEDDING_MODEL", cast=str, default="paraphrase-multilingual-mpnet-base-v2")
+COLLECTION_NAME = config("COLLECTION_NAME", cast=str, default="rag_experiment")
 
 st.title("💬 RAG AI for Medical Guideline")
 st.caption(f"🚀 A RAG AI for Medical Guideline powered by {CHAT_MODEL_PROVIDER}")
