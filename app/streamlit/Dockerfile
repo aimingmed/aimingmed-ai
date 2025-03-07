@@ -2,12 +2,6 @@ FROM python:3.11-slim
 
 WORKDIR /app/streamlit
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    software-properties-common \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
@@ -15,8 +9,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY Chatbot.py .
 COPY .env .
 
+# Run python to initialize download of SentenceTransformer model
+COPY initialize_sentence_transformer.py .
+RUN python initialize_sentence_transformer.py
+
 EXPOSE 8501
 
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
-
-ENTRYPOINT ["streamlit", "run", "Chatbot.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "Chatbot.py"]
