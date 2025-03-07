@@ -7,4 +7,4 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - ./llmops/src/rag_cot/chroma_db:/app/llmops/src/rag_cot/chroma_db
+      - ./llmops/src/rag_cot_evaluation/chroma_db:/app/llmops/src/rag_cot_evaluation/chroma_db
