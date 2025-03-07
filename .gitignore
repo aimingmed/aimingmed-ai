@@ -207,3 +207,5 @@ data/*
 **/llmops/outputs/*
 **/*.zip
 **/llm-examples/*
+**/*.ipynb_checkpoints
+**/*.ipynb
