@@ -8,6 +8,13 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
 from langchain_community.llms.moonshot import Moonshot
 
+import torch
+torch.classes.__path__ = [os.path.join(torch.__path__[0], torch.classes.__file__)] 
+
+# # # or simply:
+# torch.classes.__path__ = []
+
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
 DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
@@ -24,12 +31,15 @@ if "messages" not in st.session_state:
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
+print('i am here1')
 # Load data from ChromaDB
 chroma_client = chromadb.PersistentClient(path=INPUT_CHROMADB_LOCAL)
 collection = chroma_client.get_collection(name=COLLECTION_NAME)
+print('i am here2')
 
 # Initialize embedding model
 model = SentenceTransformer(EMBEDDING_MODEL) 
+print('i am here3')
 
 if CHAT_MODEL_PROVIDER == "deepseek":
     # Initialize DeepSeek model
@@ -78,6 +88,7 @@ Provide the answer with language that is similar to the question asked.
 """
 answer_prompt = PromptTemplate(template=answer_template, input_variables=["cot", "question"])
 answer_chain = answer_prompt | llm
+print('i am here4')
 
 if prompt := st.chat_input():
     
