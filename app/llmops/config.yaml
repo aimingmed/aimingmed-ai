@@ -12,5 +12,5 @@ etl:
 prompt_engineering:
   run_id_chromadb: None
   chat_model_provider: gemini
-  query: "怎么治疗有kras的肺癌?"
+  query: "如何治疗乳腺癌?"
   

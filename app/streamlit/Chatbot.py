@@ -19,7 +19,7 @@ MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str, default="123456")
 CHAT_MODEL_PROVIDER = config("CHAT_MODEL_PROVIDER", cast=str, default="gemini")
 INPUT_CHROMADB_LOCAL = config("INPUT_CHROMADB_LOCAL", cast=str, default="../llmops/src/rag_cot_evaluation/chroma_db")
 EMBEDDING_MODEL = config("EMBEDDING_MODEL", cast=str, default="paraphrase-multilingual-mpnet-base-v2")
-COLLECTION_NAME = config("COLLECTION_NAME", cast=str, default="rag_experiment")
+COLLECTION_NAME = config("COLLECTION_NAME", cast=str, default="rag-chroma")
 
 st.title("💬 RAG AI for Medical Guideline")
 st.caption(f"🚀 A RAG AI for Medical Guideline powered by {CHAT_MODEL_PROVIDER}")

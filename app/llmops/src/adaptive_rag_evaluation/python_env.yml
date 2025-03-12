@@ -6,15 +6,24 @@ build_dependencies:
   - setuptools
   - wheel==0.37.1
   - chromadb
-  - openai
-  - pdfminer.six
   - langchain
   - sentence_transformers
-  - langchain-text-splitters
-  - langchain_huggingface
+  - python-decouple
+  - langchain_google_genai
+  - langchain-deepseek
+  - langchain-openai
   - langchain-community
+  - mlflow[genai]
+  - langsmith
+  - openai
   - tiktoken
-
+  - langchainhub
+  - langgraph
+  - langchain-text-splitters
+  - langchain-cohere
+  - tavily-python
+  - langchain_huggingface
+  - pydantic
 # Dependencies required to run the project.
 dependencies:
   - mlflow==2.8.1

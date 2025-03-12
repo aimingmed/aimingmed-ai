@@ -46,7 +46,7 @@ def go(args):
         db_folder = "chroma_db"
         db_path = os.path.join(os.getcwd(), db_folder)
         chroma_client = chromadb.PersistentClient(path=db_path)
-        collection_name = "rag_experiment"
+        collection_name = "rag-chroma"
         collection = chroma_client.get_collection(name=collection_name)
 
         # Formulate a question
