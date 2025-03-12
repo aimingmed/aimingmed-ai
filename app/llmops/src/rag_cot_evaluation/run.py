@@ -18,6 +18,14 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
 DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
 MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str)
+LANGSMITH_API_KEY = config("LANGSMITH_API_KEY", cast=str)
+LANGSMITH_TRACING = config("LANGSMITH_TRACING", cast=str)
+LANGSMITH_PROJECT = config("LANGSMITH_PROJECT", cast=str)
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["LANGSMITH_API_KEY"] = LANGSMITH_API_KEY
+os.environ["LANGSMITH_TRACING"] = LANGSMITH_TRACING
+os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGSMITH_PROJECT"] = LANGSMITH_PROJECT
 
 def go(args):
 

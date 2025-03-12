@@ -1,4 +1,4 @@
-name: adaptive_rag_evaluation
+name: rag_adaptive_evaluation
 python_env: python_env.yml
 
 entry_points:

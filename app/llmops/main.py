@@ -9,7 +9,7 @@ _steps = [
     "etl_chromadb_pdf",
     "etl_chromadb_scanned_pdf", # the performance for scanned pdf may not be good
     "rag_cot_evaluation",
-    "adaptive_rag_evaluation",
+    "rag_adaptive_evaluation",
     "test_rag_cot"
 ]
 
@@ -132,7 +132,7 @@ def go(config: DictConfig):
                 },
             )
         
-        if "adaptive_rag_evaluation" in active_steps:
+        if "rag_adaptive_evaluation" in active_steps:
 
             if config["prompt_engineering"]["run_id_chromadb"] == "None":
                 # Look for run_id that has artifact logged as documents
@@ -152,7 +152,7 @@ def go(config: DictConfig):
                 run_id = config["prompt_engineering"]["run_id_chromadb"]
 
             _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "adaptive_rag_evaluation"),
+                os.path.join(hydra.utils.get_original_cwd(), "src", "rag_adaptive_evaluation"),
                 "main",
                 parameters={
                     "query": config["prompt_engineering"]["query"],
