@@ -4,7 +4,6 @@ import argparse
 import mlflow
 import shutil
 from decouple import config
-from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
 from langchain_community.llms.moonshot import Moonshot
@@ -22,6 +21,7 @@ from langchain.schema import Document
 from pprint import pprint
 from langgraph.graph import END, StateGraph, START
 
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
@@ -29,9 +29,15 @@ GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
 DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
 MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str)
 TAVILY_API_KEY = config("TAVILY_API_KEY", cast=str)
+LANGSMITH_API_KEY = config("LANGSMITH_API_KEY", cast=str)
+LANGSMITH_TRACING = config("LANGSMITH_TRACING", cast=str)
+LANGSMITH_PROJECT = config("LANGSMITH_PROJECT", cast=str)
 os.environ["TAVILY_API_KEY"] = TAVILY_API_KEY
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
+os.environ["LANGSMITH_API_KEY"] = LANGSMITH_API_KEY
+os.environ["LANGSMITH_TRACING"] = LANGSMITH_TRACING
+os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGSMITH_PROJECT"] = LANGSMITH_PROJECT
 
 def go(args):
 
@@ -105,8 +111,10 @@ def go(args):
 
         # Prompt
         system = """You are an expert at routing a user question to a vectorstore or web search.
-        The vectorstore contains documents related to medical treatment for cancer/tumor diseases.
-        Use the vectorstore for questions on these topics. Otherwise, use web-search."""
+        The vectorstore contains documents related to any cancer/tumor disease. The question may be
+        asked in a variety of languages, and may be phrased in a variety of ways.
+        Use the vectorstore for questions on these topics. Otherwise, use web-search. 
+        """
         route_prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", system),
@@ -155,10 +163,8 @@ def go(args):
         def format_docs(docs):
             return "\n\n".join(doc.page_content for doc in docs)
 
-
         # Chain
         rag_chain = prompt | llm | StrOutputParser()
-
 
 
 
