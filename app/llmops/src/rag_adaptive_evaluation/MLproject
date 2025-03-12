@@ -8,6 +8,10 @@ entry_points:
       query:
         description: Query to run
         type: string
+      
+      query_evaluation_dataset_csv_path:
+        description: query evaluation dataset csv path
+        type: string
 
       input_chromadb_artifact:
         description: Fully-qualified name for the input artifact
@@ -20,10 +24,10 @@ entry_points:
       chat_model_provider:
         description: Fully-qualified name for the chat model provider
         type: string
-
     
     command: >-
         python run.py --query {query} \
+                      --query_evaluation_dataset_csv_path {query_evaluation_dataset_csv_path} \
                       --input_chromadb_artifact {input_chromadb_artifact} \
                       --embedding_model {embedding_model} \
                       --chat_model_provider {chat_model_provider}

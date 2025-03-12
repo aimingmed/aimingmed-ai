@@ -156,6 +156,7 @@ def go(config: DictConfig):
                 "main",
                 parameters={
                     "query": config["prompt_engineering"]["query"],
+                    "query_evaluation_dataset_csv_path": config["prompt_engineering"]["query_evaluation_dataset_csv_path"],
                     "input_chromadb_artifact": f'runs:/{run_id}/chromadb/chroma_db.zip',
                     "embedding_model": config["etl"]["embedding_model"],
                     "chat_model_provider": config["prompt_engineering"]["chat_model_provider"]

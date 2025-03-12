@@ -13,4 +13,4 @@ prompt_engineering:
   run_id_chromadb: None
   chat_model_provider: gemini
   query: "如何治疗乳腺癌?"
-  
+  query_evaluation_dataset_csv_path: "../../../../data/qa_datasets.csv"   
