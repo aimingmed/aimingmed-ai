@@ -38,12 +38,9 @@ from evaluators import (
     gemini_evaluator_correctness,
     deepseek_evaluator_correctness,
     moonshot_evaluator_correctness,
-    # gemini_evaluator_conciseness,
-    # deepseek_evaluator_conciseness,
-    # moonshot_evaluator_conciseness,
-    # gemini_evaluator_hallucination,
-    # deepseek_evaluator_hallucination,
-    # moonshot_evaluator_hallucination
+    gemini_evaluator_faithfulness,
+    deepseek_evaluator_faithfulness,
+    moonshot_evaluator_faithfulness
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -520,7 +517,10 @@ def go_evaluation(args):
             evaluators = [
                     moonshot_evaluator_correctness,
                     deepseek_evaluator_correctness,
-                    gemini_evaluator_correctness
+                    gemini_evaluator_correctness,
+                    gemini_evaluator_faithfulness,
+                    deepseek_evaluator_faithfulness,
+                    moonshot_evaluator_faithfulness
                 # can add multiple evaluators here
             ],
             experiment_prefix = "first-eval-in-langsmith",
