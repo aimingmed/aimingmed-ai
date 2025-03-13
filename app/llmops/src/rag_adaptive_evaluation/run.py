@@ -3,12 +3,15 @@ import logging
 import argparse
 import mlflow
 import shutil
+import langsmith
+
 from decouple import config
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
 from langchain_community.llms.moonshot import Moonshot
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
+
 
 from typing import List
 from typing_extensions import TypedDict
@@ -489,13 +492,16 @@ def go_evaluation(args):
         # Programmatically create a dataset in LangSmith
         client = Client()
 
-        dataset = client.create_dataset(
-            dataset_name = dataset_name,
-            description = "A sample dataset in LangSmith."
-        )
-
-        # Add examples to the dataset
-        client.create_examples(inputs=inputs, outputs=outputs, dataset_id=dataset.id)
+        try:
+            # Create a dataset
+            dataset = client.create_dataset(
+                dataset_name = dataset_name,
+                description = "An evaluation dataset in LangSmith."
+            )
+            # Add examples to the dataset
+            client.create_examples(inputs=inputs, outputs=outputs, dataset_id=dataset.id)
+        except langsmith.utils.LangSmithConflictError:
+            pass
 
         
         args.ls_chat_model_evaluator = None if args.ls_chat_model_evaluator == 'None' else args.ls_chat_model_evaluator.split(',')
@@ -521,7 +527,7 @@ def go_evaluation(args):
         # After running the evaluation, a link will be provided to view the results in langsmith
         experiment_results = client.evaluate(
             target,
-            data = "Sample dataset",
+            data = dataset_name,
             evaluators = ls_evaluators,
             experiment_prefix = "first-eval-in-langsmith",
             max_concurrency = 1,
