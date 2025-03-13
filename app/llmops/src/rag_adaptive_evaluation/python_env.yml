@@ -24,7 +24,6 @@ build_dependencies:
   - tavily-python
   - langchain_huggingface
   - pydantic
-  - openevals
 # Dependencies required to run the project.
 dependencies:
   - mlflow==2.8.1

@@ -38,30 +38,26 @@ from evaluators import (
     gemini_evaluator_correctness,
     deepseek_evaluator_correctness,
     moonshot_evaluator_correctness,
-    gemini_evaluator_conciseness,
-    deepseek_evaluator_conciseness,
-    moonshot_evaluator_conciseness,
-    gemini_evaluator_hallucination,
-    deepseek_evaluator_hallucination,
-    moonshot_evaluator_hallucination
+    # gemini_evaluator_conciseness,
+    # deepseek_evaluator_conciseness,
+    # moonshot_evaluator_conciseness,
+    # gemini_evaluator_hallucination,
+    # deepseek_evaluator_hallucination,
+    # moonshot_evaluator_hallucination
 )
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
-GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
-DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
-MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str)
-TAVILY_API_KEY = config("TAVILY_API_KEY", cast=str)
-LANGSMITH_API_KEY = config("LANGSMITH_API_KEY", cast=str)
-LANGSMITH_TRACING = config("LANGSMITH_TRACING", cast=str)
-LANGSMITH_PROJECT = config("LANGSMITH_PROJECT", cast=str)
-os.environ["TAVILY_API_KEY"] = TAVILY_API_KEY
+os.environ["GOOGLE_API_KEY"] = config("GOOGLE_API_KEY", cast=str)
+os.environ["DEEPSEEK_API_KEY"] = config("DEEPSEEK_API_KEY", cast=str)
+os.environ["MOONSHOT_API_KEY"] = config("MOONSHOT_API_KEY", cast=str)
+os.environ["TAVILY_API_KEY"] = config("TAVILY_API_KEY", cast=str)
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-os.environ["LANGSMITH_API_KEY"] = LANGSMITH_API_KEY
-os.environ["LANGSMITH_TRACING"] = LANGSMITH_TRACING
+os.environ["LANGSMITH_API_KEY"] = config("LANGSMITH_API_KEY", cast=str)
+os.environ["LANGSMITH_TRACING"] = config("LANGSMITH_TRACING", cast=str)
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGSMITH_PROJECT"] = LANGSMITH_PROJECT
+os.environ["LANGSMITH_PROJECT"] = config("LANGSMITH_PROJECT", cast=str)
 
 def go(args):
 
@@ -95,12 +91,10 @@ def go(args):
                 max_tokens=None,
                 timeout=None,
                 max_retries=2,
-                api_key=DEEKSEEK_API_KEY
             )
         elif args.chat_model_provider == 'gemini':
             llm = ChatGoogleGenerativeAI(
                 model="gemini-1.5-flash", 
-                google_api_key=GEMINI_API_KEY,
                 temperature=0,
                 max_retries=3,
                 streaming=True
@@ -112,7 +106,6 @@ def go(args):
                 max_tokens=None,
                 timeout=None,
                 max_retries=2,
-                api_key=MOONSHOT_API_KEY
             )
 
         # Load data from ChromaDB
@@ -479,7 +472,61 @@ def go(args):
             pprint("\n---\n")
 
         # Final generation
-        pprint(value["generation"])
+        print(value["generation"])
+
+        return {"response": value["generation"]}
+    
+def go_evaluation(args):
+    if args.query_evaluation_dataset_csv_path:
+        # import pandas as pd
+        # from tqdm import tqdm
+
+        # df = pd.read_csv(args.query_evaluation_dataset_csv_path)
+        client = Client()
+        # # Create inputs and reference outputs
+        # examples = [
+        # (
+        #     "Which country is Mount Kilimanjaro located in?",
+        #     "Mount Kilimanjaro is located in Tanzania.",
+        # ),
+        # (
+        #     "What is Earth's lowest point?",
+        #     "Earth's lowest point is The Dead Sea.",
+        # ),
+        # ]
+
+        # inputs = [{"question": input_prompt} for input_prompt, _ in examples]
+        # outputs = [{"answer": output_answer} for _, output_answer in examples]
+
+        # # Programmatically create a dataset in LangSmith
+        # dataset = client.create_dataset(
+        #     dataset_name = "Sample dataset",
+        #     description = "A sample dataset in LangSmith."
+        # )
+
+        # # Add examples to the dataset
+        # client.create_examples(inputs=inputs, outputs=outputs, dataset_id=dataset.id)
+
+        def target(inputs: dict) -> dict:
+            new_args = argparse.Namespace(**vars(args))
+            new_args.query = inputs["question"]
+            return go(new_args)
+
+        
+        # After running the evaluation, a link will be provided to view the results in langsmith
+        experiment_results = client.evaluate(
+            target,
+            data = "Sample dataset",
+            evaluators = [
+                    moonshot_evaluator_correctness,
+                    deepseek_evaluator_correctness,
+                    gemini_evaluator_correctness
+                # can add multiple evaluators here
+            ],
+            experiment_prefix = "first-eval-in-langsmith",
+            max_concurrency = 1,
+            
+        )
 
     
 
@@ -523,4 +570,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    go(args)
+    # go(args)
+    go_evaluation(args)
