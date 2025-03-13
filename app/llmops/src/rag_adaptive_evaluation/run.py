@@ -474,61 +474,60 @@ def go(args):
         return {"response": value["generation"]}
     
 def go_evaluation(args):
-    if args.query_evaluation_dataset_csv_path:
-        # import pandas as pd
-        # from tqdm import tqdm
+    if args.evaluation_dataset_csv_path:
 
-        # df = pd.read_csv(args.query_evaluation_dataset_csv_path)
+        import pandas as pd
+
+        df = pd.read_csv(args.evaluation_dataset_csv_path)
+        dataset_name = os.path.basename(args.evaluation_dataset_csv_path).split('.')[0]
+
+        # df contains columns of question and answer
+        examples = df[[args.evaluation_dataset_column_question, args.evaluation_dataset_column_answer]].values.tolist()
+        inputs = [{"question": input_prompt} for input_prompt, _ in examples]
+        outputs = [{"answer": output_answer} for _, output_answer in examples]
+
+        # Programmatically create a dataset in LangSmith
         client = Client()
-        # # Create inputs and reference outputs
-        # examples = [
-        # (
-        #     "Which country is Mount Kilimanjaro located in?",
-        #     "Mount Kilimanjaro is located in Tanzania.",
-        # ),
-        # (
-        #     "What is Earth's lowest point?",
-        #     "Earth's lowest point is The Dead Sea.",
-        # ),
-        # ]
 
-        # inputs = [{"question": input_prompt} for input_prompt, _ in examples]
-        # outputs = [{"answer": output_answer} for _, output_answer in examples]
+        dataset = client.create_dataset(
+            dataset_name = dataset_name,
+            description = "A sample dataset in LangSmith."
+        )
 
-        # # Programmatically create a dataset in LangSmith
-        # dataset = client.create_dataset(
-        #     dataset_name = "Sample dataset",
-        #     description = "A sample dataset in LangSmith."
-        # )
+        # Add examples to the dataset
+        client.create_examples(inputs=inputs, outputs=outputs, dataset_id=dataset.id)
 
-        # # Add examples to the dataset
-        # client.create_examples(inputs=inputs, outputs=outputs, dataset_id=dataset.id)
+        
+        args.ls_chat_model_evaluator = None if args.ls_chat_model_evaluator == 'None' else args.ls_chat_model_evaluator.split(',')
 
         def target(inputs: dict) -> dict:
             new_args = argparse.Namespace(**vars(args))
             new_args.query = inputs["question"]
             return go(new_args)
 
+        ls_evaluators = []
+        if args.ls_chat_model_evaluator:
+            for evaluator in args.ls_chat_model_evaluator:
+                if evaluator == 'moonshot':
+                    ls_evaluators.append(moonshot_evaluator_correctness)
+                    ls_evaluators.append(moonshot_evaluator_faithfulness)
+                elif evaluator == 'deepseek':
+                    ls_evaluators.append(deepseek_evaluator_correctness)
+                    ls_evaluators.append(deepseek_evaluator_faithfulness)
+                elif evaluator == 'gemini':
+                    ls_evaluators.append(gemini_evaluator_correctness)
+                    ls_evaluators.append(gemini_evaluator_faithfulness)
         
         # After running the evaluation, a link will be provided to view the results in langsmith
         experiment_results = client.evaluate(
             target,
             data = "Sample dataset",
-            evaluators = [
-                    moonshot_evaluator_correctness,
-                    deepseek_evaluator_correctness,
-                    gemini_evaluator_correctness,
-                    gemini_evaluator_faithfulness,
-                    deepseek_evaluator_faithfulness,
-                    moonshot_evaluator_faithfulness
-                # can add multiple evaluators here
-            ],
+            evaluators = ls_evaluators,
             experiment_prefix = "first-eval-in-langsmith",
             max_concurrency = 1,
             
         )
 
-    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Adaptive AG")
@@ -541,10 +540,24 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--query_evaluation_dataset_csv_path",
+        "--evaluation_dataset_csv_path",
         type=str,
         help="Path to the query evaluation dataset",
         default=None,
+    )
+
+    parser.add_argument(
+        "--evaluation_dataset_column_question",
+        type=str,
+        help="Column name for the questions in the evaluation dataset",
+        default="question",
+    )
+
+    parser.add_argument(
+        "--evaluation_dataset_column_answer",
+        type=str,
+        help="Column name for the groundtruth answers in the evaluation dataset",
+        default="groundtruth",
     )
 
     parser.add_argument(
@@ -568,7 +581,14 @@ if __name__ == "__main__":
         help="Chat model provider"
     )
 
+    parser.add_argument(
+        "--ls_chat_model_evaluator",
+        type=str,
+        help="list of Chat model providers for evaluation",
+        required=False,
+        default="None"
+    )
+
     args = parser.parse_args()
-    
-    # go(args)
+
     go_evaluation(args)

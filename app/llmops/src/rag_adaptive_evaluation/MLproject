@@ -9,8 +9,16 @@ entry_points:
         description: Query to run
         type: string
       
-      query_evaluation_dataset_csv_path:
+      evaluation_dataset_csv_path:
         description: query evaluation dataset csv path
+        type: string
+
+      evaluation_dataset_column_question:
+        description: query evaluation dataset column question
+        type: string
+
+      evaluation_dataset_column_answer:
+        description: query evaluation dataset column groundtruth
         type: string
 
       input_chromadb_artifact:
@@ -24,10 +32,18 @@ entry_points:
       chat_model_provider:
         description: Fully-qualified name for the chat model provider
         type: string
+
+      ls_chat_model_evaluator:
+        description: list of chat model providers for evaluation
+        type: string
+      
     
     command: >-
         python run.py --query {query} \
-                      --query_evaluation_dataset_csv_path {query_evaluation_dataset_csv_path} \
+                      --evaluation_dataset_csv_path {evaluation_dataset_csv_path} \
+                      --evaluation_dataset_column_question {evaluation_dataset_column_question} \
+                      --evaluation_dataset_column_answer {evaluation_dataset_column_answer} \
                       --input_chromadb_artifact {input_chromadb_artifact} \
                       --embedding_model {embedding_model} \
-                      --chat_model_provider {chat_model_provider}
+                      --chat_model_provider {chat_model_provider} \
+                      --ls_chat_model_evaluator {ls_chat_model_evaluator}
