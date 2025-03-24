@@ -209,3 +209,4 @@ data/*
 **/llm-examples/*
 **/*.ipynb_checkpoints
 **/*.ipynb
+**/transformer_model/*

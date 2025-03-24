@@ -105,7 +105,7 @@ def go(args):
         documents_folder = os.path.splitext(os.path.basename(artifact_local_path))[0]
 
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=1000, chunk_overlap=500
+            chunk_size=15000, chunk_overlap=7500
         )
 
         ls_docs = []
@@ -113,7 +113,7 @@ def go(args):
             for file in files:
                 if file.endswith(".pdf"):
                     read_text = extract_chinese_text_from_pdf(os.path.join(root, file))
-                    document = Document(metadata={"file": file}, page_content=read_text)
+                    document = Document(metadata={"file": f"{documents_folder}/{file}"}, page_content=read_text)
                     ls_docs.append(document)
                                         
         doc_splits = text_splitter.split_documents(ls_docs)
@@ -138,7 +138,7 @@ def go(args):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="A very basic data cleaning")
+    parser = argparse.ArgumentParser(description="ETL for ChromaDB with readable PDF")
 
     parser.add_argument(
         "--input_artifact", 
