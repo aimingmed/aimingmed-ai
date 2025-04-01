@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-streamlit = "==1.28"
+streamlit = "*"
 langchain = "*"
 duckduckgo-search = "*"
 anthropic = "*"
@@ -12,7 +12,7 @@ trubrics = "*"
 streamlit-feedback = "*"
 langchain-community = "*"
 watchdog = "*"
-mlflow = "==2.8.1"
+mlflow = "*"
 python-decouple = "*"
 langchain_google_genai = "*"
 langchain-deepseek = "*"

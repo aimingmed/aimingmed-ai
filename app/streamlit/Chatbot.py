@@ -11,9 +11,6 @@ from langchain_community.llms.moonshot import Moonshot
 import torch
 torch.classes.__path__ = [os.path.join(torch.__path__[0], torch.classes.__file__)] 
 
-# # # or simply:
-# torch.classes.__path__ = []
-
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str, default="123456")
@@ -22,7 +19,7 @@ MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str, default="123456")
 CHAT_MODEL_PROVIDER = config("CHAT_MODEL_PROVIDER", cast=str, default="gemini")
 INPUT_CHROMADB_LOCAL = config("INPUT_CHROMADB_LOCAL", cast=str, default="../llmops/src/rag_cot_evaluation/chroma_db")
 EMBEDDING_MODEL = config("EMBEDDING_MODEL", cast=str, default="paraphrase-multilingual-mpnet-base-v2")
-COLLECTION_NAME = config("COLLECTION_NAME", cast=str, default="rag_experiment")
+COLLECTION_NAME = config("COLLECTION_NAME", cast=str, default="rag-chroma")
 
 st.title("💬 RAG AI for Medical Guideline")
 st.caption(f"🚀 A RAG AI for Medical Guideline powered by {CHAT_MODEL_PROVIDER}")
@@ -31,15 +28,12 @@ if "messages" not in st.session_state:
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
-print('i am here1')
 # Load data from ChromaDB
 chroma_client = chromadb.PersistentClient(path=INPUT_CHROMADB_LOCAL)
 collection = chroma_client.get_collection(name=COLLECTION_NAME)
-print('i am here2')
 
 # Initialize embedding model
 model = SentenceTransformer(EMBEDDING_MODEL) 
-print('i am here3')
 
 if CHAT_MODEL_PROVIDER == "deepseek":
     # Initialize DeepSeek model
@@ -88,7 +82,6 @@ Provide the answer with language that is similar to the question asked.
 """
 answer_prompt = PromptTemplate(template=answer_template, input_variables=["cot", "question"])
 answer_chain = answer_prompt | llm
-print('i am here4')
 
 if prompt := st.chat_input():
     

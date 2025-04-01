@@ -8,16 +8,16 @@ import os
 import mlflow
 import shutil
 
-import chromadb
 import io
 from pdfminer.converter import TextConverter
 from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 from langchain.schema import Document
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores.chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from sentence_transformers import SentenceTransformer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
@@ -80,7 +80,7 @@ def go(args):
 
 
         # Initialize embedding model (do this ONCE)
-        model_embedding = SentenceTransformer(args.embedding_model)  # Or a multilingual model
+        model_embedding = HuggingFaceEmbeddings(model_name=args.embedding_model)  # Or a multilingual model
 
 
         # Create database, delete the database directory if it exists
@@ -90,9 +90,6 @@ def go(args):
             shutil.rmtree(db_path)
         os.makedirs(db_path)
 
-        chroma_client = chromadb.PersistentClient(path=db_path)
-        collection_name = "rag_experiment"
-        db = chroma_client.create_collection(name=collection_name)
 
         logger.info("Downloading artifact")
         artifact_local_path = mlflow.artifacts.download_artifacts(artifact_uri=args.input_artifact)
@@ -107,22 +104,28 @@ def go(args):
         # show the unzipped folder
         documents_folder = os.path.splitext(os.path.basename(artifact_local_path))[0]
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+            chunk_size=15000, chunk_overlap=7500
+        )
 
+        ls_docs = []
         for root, _dir, files in os.walk(f"./{documents_folder}"):
             for file in files:
                 if file.endswith(".pdf"):
                     read_text = extract_chinese_text_from_pdf(os.path.join(root, file))
-                    document = Document(page_content=read_text)
-                    all_splits = text_splitter.split_documents([document])
-                    
-                    for i, split in enumerate(all_splits):
-                        db.add(documents=[split.page_content], 
-                            metadatas=[{"filename": file}],
-                            ids=[f'{file[:-4]}-{str(i)}'],
-                            embeddings=[model_embedding.encode(split.page_content)]
-                        )
-        
+                    document = Document(metadata={"file": f"{documents_folder}/{file}"}, page_content=read_text)
+                    ls_docs.append(document)
+                                        
+        doc_splits = text_splitter.split_documents(ls_docs)
+
+        # Add to vectorDB
+        _vectorstore = Chroma.from_documents(
+            documents=doc_splits,
+            collection_name="rag-chroma",
+            embedding=model_embedding,
+            persist_directory=db_path
+        )
+
         logger.info("Logging artifact with mlflow")
         shutil.make_archive(db_path, 'zip', db_path)
         mlflow.log_artifact(db_path + '.zip', args.output_artifact)
@@ -135,7 +138,7 @@ def go(args):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="A very basic data cleaning")
+    parser = argparse.ArgumentParser(description="ETL for ChromaDB with readable PDF")
 
     parser.add_argument(
         "--input_artifact", 
