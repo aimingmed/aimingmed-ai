@@ -14,10 +14,14 @@ from langchain_community.llms.moonshot import Moonshot
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
+os.environ["GOOGLE_API_KEY"] = config("GOOGLE_API_KEY", cast=str)
+os.environ["DEEPSEEK_API_KEY"] = config("DEEPSEEK_API_KEY", cast=str)
+os.environ["MOONSHOT_API_KEY"] = config("MOONSHOT_API_KEY", cast=str)
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-GEMINI_API_KEY = config("GOOGLE_API_KEY", cast=str)
-DEEKSEEK_API_KEY = config("DEEKSEEK_API_KEY", cast=str)
-MOONSHOT_API_KEY = config("MOONSHOT_API_KEY", cast=str)
+os.environ["LANGSMITH_API_KEY"] = config("LANGSMITH_API_KEY", cast=str)
+os.environ["LANGSMITH_TRACING"] = config("LANGSMITH_TRACING", cast=str)
+os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGSMITH_PROJECT"] = config("LANGSMITH_PROJECT", cast=str)
 
 def go(args):
 
@@ -60,14 +64,12 @@ def go(args):
                 max_tokens=None,
                 timeout=None,
                 max_retries=2,
-                api_key=DEEKSEEK_API_KEY
             )
             
         elif args.chat_model_provider == "gemini":
             # Initialize Gemini model
             llm = ChatGoogleGenerativeAI(
                 model="gemini-1.5-flash", 
-                google_api_key=GEMINI_API_KEY,
                 temperature=0,
                 max_retries=3
                 )
@@ -80,7 +82,6 @@ def go(args):
                 max_tokens=None,
                 timeout=None,
                 max_retries=2,
-                api_key=MOONSHOT_API_KEY
             )
             
 

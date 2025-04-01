@@ -9,7 +9,7 @@ _steps = [
     "etl_chromadb_pdf",
     "etl_chromadb_scanned_pdf", # the performance for scanned pdf may not be good
     "rag_cot_evaluation",
-    "adaptive_rag_evaluation",
+    "rag_adaptive_evaluation",
     "test_rag_cot"
 ]
 
@@ -104,7 +104,7 @@ def go(config: DictConfig):
             )
         if "rag_cot_evaluation" in active_steps:
 
-            if config["prompt_engineering"]["run_id_chromadb"] == "None":
+            if config["rag"]["run_id_chromadb"] == "None":
                 # Look for run_id that has artifact logged as documents
                 run_id = None
                 client = mlflow.tracking.MlflowClient()
@@ -119,22 +119,22 @@ def go(config: DictConfig):
                 if run_id is None:
                     raise ValueError("No run_id found with artifact logged as documents")
             else:
-                run_id = config["prompt_engineering"]["run_id_chromadb"]
+                run_id = config["rag"]["run_id_chromadb"]
 
             _ = mlflow.run(
                 os.path.join(hydra.utils.get_original_cwd(), "src", "rag_cot_evaluation"),
                 "main",
                 parameters={
-                    "query": config["prompt_engineering"]["query"],
+                    "query": config["testing"]["query"],
                     "input_chromadb_artifact": f'runs:/{run_id}/chromadb/chroma_db.zip',
                     "embedding_model": config["etl"]["embedding_model"],
-                    "chat_model_provider": config["prompt_engineering"]["chat_model_provider"]
+                    "chat_model_provider": config["rag"]["chat_model_provider"]
                 },
             )
         
-        if "adaptive_rag_evaluation" in active_steps:
+        if "rag_adaptive_evaluation" in active_steps:
 
-            if config["prompt_engineering"]["run_id_chromadb"] == "None":
+            if config["rag"]["run_id_chromadb"] == "None":
                 # Look for run_id that has artifact logged as documents
                 run_id = None
                 client = mlflow.tracking.MlflowClient()
@@ -149,16 +149,20 @@ def go(config: DictConfig):
                 if run_id is None:
                     raise ValueError("No run_id found with artifact logged as documents")
             else:
-                run_id = config["prompt_engineering"]["run_id_chromadb"]
+                run_id = config["rag"]["run_id_chromadb"]
 
             _ = mlflow.run(
-                os.path.join(hydra.utils.get_original_cwd(), "src", "adaptive_rag_evaluation"),
+                os.path.join(hydra.utils.get_original_cwd(), "src", "rag_adaptive_evaluation"),
                 "main",
                 parameters={
-                    "query": config["prompt_engineering"]["query"],
+                    "query": config["testing"]["query"],
+                    "evaluation_dataset_csv_path": config["evaluation"]["evaluation_dataset_csv_path"],
+                    "evaluation_dataset_column_question": config["evaluation"]["evaluation_dataset_column_question"],
+                    "evaluation_dataset_column_answer": config["evaluation"]["evaluation_dataset_column_answer"],
                     "input_chromadb_artifact": f'runs:/{run_id}/chromadb/chroma_db.zip',
                     "embedding_model": config["etl"]["embedding_model"],
-                    "chat_model_provider": config["prompt_engineering"]["chat_model_provider"]
+                    "chat_model_provider": config["rag"]["chat_model_provider"],
+                    "ls_chat_model_evaluator": ','.join(config["evaluation"]["ls_chat_model_provider"]) if config["evaluation"]["ls_chat_model_provider"] is not None else 'None',
                 },
             )
 
@@ -168,10 +172,10 @@ def go(config: DictConfig):
                 os.path.join(hydra.utils.get_original_cwd(), "components", "test_rag_cot"),
                 "main",
                 parameters={
-                    "query": config["prompt_engineering"]["query"],
+                    "query": config["testing"]["query"],
                     "input_chromadb_local": os.path.join(hydra.utils.get_original_cwd(), "src", "rag_cot_evaluation", "chroma_db"),
                     "embedding_model": config["etl"]["embedding_model"],
-                    "chat_model_provider": config["prompt_engineering"]["chat_model_provider"]
+                    "chat_model_provider": config["rag"]["chat_model_provider"]
                 },
             )
 

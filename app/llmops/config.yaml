@@ -9,8 +9,16 @@ etl:
   path_document_folder: "../../../../data"
   run_id_documents: None
   embedding_model: paraphrase-multilingual-mpnet-base-v2
-prompt_engineering:
+rag:
   run_id_chromadb: None
-  chat_model_provider: gemini
+  chat_model_provider: deepseek
+testing:
   query: "如何治疗乳腺癌?"
-  
+evaluation:
+  evaluation_dataset_csv_path: "../../../../data/qa_dataset_20240321a.csv"
+  evaluation_dataset_column_question: question
+  evaluation_dataset_column_answer: answer
+  ls_chat_model_provider:
+    - gemini
+    - deepseek
+    - moonshot
