@@ -525,7 +525,7 @@ def go_evaluation(args):
                     ls_evaluators.append(gemini_evaluator_faithfulness)
         
         # After running the evaluation, a link will be provided to view the results in langsmith
-        experiment_results = client.evaluate(
+        _ = client.evaluate(
             target,
             data = dataset_name,
             evaluators = ls_evaluators,
