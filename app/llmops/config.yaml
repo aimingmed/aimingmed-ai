@@ -15,7 +15,7 @@ rag:
 testing:
   query: "如何治疗乳腺癌?"
 evaluation:
-  evaluation_dataset_csv_path: "../../../../data/qa_dataset_20240321a.csv"
+  evaluation_dataset_csv_path: "../../../../data/qa_dataset_20250401b.csv"
   evaluation_dataset_column_question: question
   evaluation_dataset_column_answer: answer
   ls_chat_model_provider:
