@@ -3,6 +3,8 @@
 Download from W&B the raw dataset and apply some basic data cleaning, exporting the result to a new artifact
 """
 import argparse
+import glob
+import json
 import logging
 import os
 import mlflow
@@ -108,13 +110,32 @@ def go(args):
             chunk_size=15000, chunk_overlap=7500
         )
 
+        # read the dictionary json for word replacement in the read text
+        with open(f'./{documents_folder}/2023CACA/CACA英文缩写.json', 'r', encoding='utf-8') as f:
+            df_dict_json = json.load(f)
+
         ls_docs = []
-        for root, _dir, files in os.walk(f"./{documents_folder}"):
-            for file in files:
-                if file.endswith(".pdf"):
-                    read_text = extract_chinese_text_from_pdf(os.path.join(root, file))
-                    document = Document(metadata={"file": f"{documents_folder}/{file}"}, page_content=read_text)
-                    ls_docs.append(document)
+        pdf_files = glob.glob(f"./{documents_folder}/**/*.pdf", recursive=True)
+        
+        for pdf_file in pdf_files:
+            read_text = extract_chinese_text_from_pdf(pdf_file)
+            relative_path = os.path.relpath(pdf_file, start=f"./{documents_folder}")
+
+            # if the parent directory of the pdf file is 2023CACA, then replace the shortform text with the dictionary value
+            if '2023CACA' in relative_path:
+                # get the pdf filename without the extension
+                pdf_filename = os.path.splitext(os.path.basename(pdf_file))[0]
+                # replace the text with the dictionary
+                dict_file = df_dict_json.get(pdf_filename)
+                if dict_file:
+                    for key, value in dict_file.items():
+                        read_text = read_text.replace(key, value)
+            
+
+            document = Document(metadata={"file": relative_path}, page_content=read_text)
+            ls_docs.append(document)
+
+
                                         
         doc_splits = text_splitter.split_documents(ls_docs)
 
