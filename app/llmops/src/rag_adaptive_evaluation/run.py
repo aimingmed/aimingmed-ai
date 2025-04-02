@@ -18,10 +18,13 @@ from typing_extensions import TypedDict
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain.prompts import PromptTemplate, HumanMessagePromptTemplate
+
 from langchain.schema import Document
 from pprint import pprint
 from langgraph.graph import END, StateGraph, START
 from langsmith import Client
+
 
 from data_models import (
     RouteQuery, 
@@ -34,7 +37,8 @@ from prompts_library import (
     system_retriever_grader,
     system_hallucination_grader,
     system_answer_grader,
-    system_question_rewriter
+    system_question_rewriter,
+    qa_prompt_template
 )
 
 from evaluators import (
@@ -141,18 +145,22 @@ def go(args):
 
         ##########################################
         ### Generate
-        from langchain import hub
         from langchain_core.output_parsers import StrOutputParser
 
-        # Prompt
-        prompt = hub.pull("rlm/rag-prompt")
+        # Create a PromptTemplate with the given prompt
+        new_prompt_template = PromptTemplate(
+            input_variables=["context", "question"],
+            template=qa_prompt_template,
+        )
 
-        # Post-processing
-        def format_docs(docs):
-            return "\n\n".join(doc.page_content for doc in docs)
+        # Create a new HumanMessagePromptTemplate with the new PromptTemplate
+        new_human_message_prompt_template = HumanMessagePromptTemplate(
+            prompt=new_prompt_template
+        )
+        prompt_qa = ChatPromptTemplate.from_messages([new_human_message_prompt_template])
 
         # Chain
-        rag_chain = prompt | llm | StrOutputParser()
+        rag_chain = prompt_qa | llm | StrOutputParser()
 
 
         ##########################################
