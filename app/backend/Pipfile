@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "*"
+pydantic = "*"
+uvicorn = "*"
+pydantic-settings = "==2.1.0"
+
+[dev-packages]
+httpx = "==0.26.0"
+pytest = "==7.4.4"
+pytest-cov = "==4.1.0"
+pytest-mock = "==3.10.0"
+flake8 = "==7.0.0"
+black = "==23.12.1"
+isort = "==5.13.2"
+ipykernel = "*"
+
+[requires]
+python_version = "3.11"
