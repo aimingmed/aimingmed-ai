@@ -8,6 +8,12 @@ fastapi = "*"
 pydantic = "*"
 uvicorn = "*"
 pydantic-settings = "==2.1.0"
+pyyaml = "==6.0.1"
+pip = "==24.0.0"
+docker = "*"
+chromadb = "*"
+sentence-transformers = "*"
+langchain = "*"
 
 [dev-packages]
 httpx = "==0.26.0"
