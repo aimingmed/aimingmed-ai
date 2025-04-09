@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from './App';
 import { vi } from 'vitest';
 
@@ -9,13 +9,14 @@ it('renders initial state', () => {
   expect(screen.getByRole('button', { name: /send/i })).toBeInTheDocument();
 });
 
-// it('sends a message', () => {
-//   const mockSend = vi.fn();
-//   const mockSocket = { send: mockSend };
-//   render(<App />);
-//   const inputElement = screen.getByRole('textbox');
-//   const buttonElement = screen.getByRole('button', { name: /send/i });
-//   fireEvent.change(inputElement, { target: { value: 'Hello' } });
-//   fireEvent.keyDown(inputElement, { key: 'Enter', code: 'Enter' }); // Simulate Enter key press
-//   expect(mockSend).toHaveBeenCalled();
-// });
+it('sends a message', () => {
+  const mockSend = vi.fn();
+  vi.spyOn(WebSocket.prototype, 'send').mockImplementation(mockSend);
+  render(<App />);
+  const inputElement = screen.getByRole('textbox');
+  fireEvent.change(inputElement, { target: { value: 'Hello' } });
+  const buttonElement = screen.getByRole('button', { name: /send/i });
+  fireEvent.click(buttonElement);
+  expect(mockSend).toHaveBeenCalledWith(JSON.stringify([{ role: 'user', content: 'Hello' }]));
+  expect(screen.getByText('Hello')).toBeInTheDocument();
+});
