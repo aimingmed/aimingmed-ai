@@ -30,14 +30,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull image
         run: |
-          docker pull ${{ env.IMAGE }}:latest --platform linux/amd64 || true
+          docker pull ${{ env.IMAGE }}:latest || true
       - name: Build image
         run: |
           docker build \
             --cache-from ${{ env.IMAGE }}:latest \
             --tag ${{ env.IMAGE }}:latest \
-            --file ./app/backend/Dockerfile.prod \
-            "./app/backend"
+            --file ./backend/Dockerfile.prod \
+            "./backend"
       - name: Push image
         run: |
           docker push ${{ env.IMAGE }}:latest
