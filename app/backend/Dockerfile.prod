@@ -80,5 +80,6 @@ RUN chown -R app:app $APP_HOME
 # change to the app user
 USER app
 
+
 # run gunicorn
 CMD pipenv run gunicorn --bind 0.0.0.0:$PORT backend.main:app -k uvicorn.workers.UvicornWorker
