@@ -4,9 +4,9 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock
 from fastapi import WebSocket
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from app.backend.api.utils import ConnectionManager
+from api.utils import ConnectionManager
 
 class TestConnectionManager(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):

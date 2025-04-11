@@ -10,7 +10,7 @@ ENV PYTHONUNBUFFERED 1
 
 # install system dependencies
 RUN apt-get update \
-    && apt-get -y install build-essential netcat-traditional gcc postgresql \
+    && apt-get -y install build-essential netcat-traditional gcc \
     && apt-get clean
 
 # install python dependencies

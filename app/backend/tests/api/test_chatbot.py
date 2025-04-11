@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import AsyncMock
 from fastapi import WebSocket, WebSocketDisconnect
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
-from app.backend.api.chatbot import websocket_endpoint, manager, llm_chat
+from api.chatbot import websocket_endpoint, manager, llm_chat
 

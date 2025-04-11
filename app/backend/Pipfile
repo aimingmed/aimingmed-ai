@@ -4,13 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "*"
-pydantic = "*"
-uvicorn = "*"
+fastapi = "==0.115.9"
+starlette = "==0.45.3"
+uvicorn = "==0.26.0"
 pydantic-settings = "==2.1.0"
-python-decouple = "*"
+gunicorn = "==21.0.1"
+python-decouple = "==3.8"
 pyyaml = "==6.0.1"
-pip = "==24.0.0"
 docker = "*"
 chromadb = "*"
 sentence-transformers = "*"
