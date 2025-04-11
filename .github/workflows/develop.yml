@@ -67,14 +67,13 @@ jobs:
           docker run \
             -d \
             --name backend \
-            --memory=2g \
             -e PORT=8765 \
             -e ENVIRONMENT=dev \
             -e TESTING=0 \
             -p 8004:8765 \
             ${{ env.IMAGE }}:latest
       - name: Pytest
-        run: docker exec backend pipenv run python -m pytest . --disable-warnings --maxfail=5
+        run: docker exec backend pipenv run python -m pytest tests --disable-warnings --maxfail=5
       # - name: Flake8
       #   run: docker exec backend pipenv run python -m flake8 .
       # - name: Black
