@@ -16,7 +16,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     mounted.current = true;
-    const ws = new WebSocket(`ws://${BASE_DOMAIN_NAME}:8004/ws`);
+    const ws = new WebSocket(`ws://${BASE_DOMAIN_NAME}:8000/ws`);
     setSocket(ws);
     ws.onopen = () => {
       console.log('WebSocket connection opened');
