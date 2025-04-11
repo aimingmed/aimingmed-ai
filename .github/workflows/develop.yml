@@ -17,6 +17,11 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Free up disk space
+        run: |
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          docker system prune -af
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -44,6 +49,11 @@ jobs:
     runs-on: Ubuntu-latest
     needs: build
     steps:
+      - name: Free up disk space
+        run: |
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          docker system prune -af
       - name: Checkout
         uses: actions/checkout@v3
         with:
