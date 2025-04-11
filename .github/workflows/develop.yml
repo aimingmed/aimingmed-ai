@@ -12,7 +12,7 @@ jobs:
 
   build:
     name: Build Docker Image
-    runs-on: self-hosted
+    runs-on: Ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -41,7 +41,7 @@ jobs:
 
   test:
     name: Test Docker Image
-    runs-on: self-hosted
+    runs-on: Ubuntu-latest
     needs: build
     steps:
       - name: Checkout
@@ -67,8 +67,6 @@ jobs:
           docker run \
             -d \
             --name backend \
-            --memory=6g \
-            --cpus=2 \
             -e PORT=8765 \
             -e ENVIRONMENT=dev \
             -e TESTING=0 \
