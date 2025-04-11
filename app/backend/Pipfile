@@ -1,0 +1,31 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "==0.115.9"
+starlette = "==0.45.3"
+uvicorn = "==0.26.0"
+pydantic-settings = "==2.1.0"
+gunicorn = "==21.0.1"
+python-decouple = "==3.8"
+pyyaml = "==6.0.1"
+docker = "*"
+chromadb = "*"
+sentence-transformers = "*"
+langchain = "*"
+langchain-deepseek = "*"
+
+[dev-packages]
+httpx = "==0.26.0"
+pytest = "==7.4.4"
+pytest-cov = "==4.1.0"
+pytest-mock = "==3.10.0"
+flake8 = "==7.0.0"
+black = "==23.12.1"
+isort = "==5.13.2"
+ipykernel = "*"
+
+[requires]
+python_version = "3.11"
