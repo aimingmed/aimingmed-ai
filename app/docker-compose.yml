@@ -7,32 +7,32 @@ services:
   #   volumes:
   #     - ./llmops/src/rag_cot_evaluation/chroma_db:/app/llmops/src/rag_cot_evaluation/chroma_db
 
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: backend
-    platform: linux/amd64
-    command: pipenv run uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
-    volumes:
-      - ./backend:/usr/src/app
-    ports:
-      - "8004:8000"
-    environment:
-      - ENVIRONMENT=dev
-      - TESTING=0
-
-  # frontend:
+  # backend:
   #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.local
-  #   container_name: frontend
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: backend
   #   platform: linux/amd64
+  #   command: pipenv run uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
   #   volumes:
-  #     - ./frontend:/usr/src/app
+  #     - ./backend:/usr/src/app
   #   ports:
-  #     - "3004:5173"
-  #   # depends_on:
-  #   #   - backend
+  #     - "8004:8000"
   #   environment:
-  #     LOG_LEVEL: "DEBUG"
+  #     - ENVIRONMENT=dev
+  #     - TESTING=0
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.local
+    container_name: frontend
+    platform: linux/amd64
+    volumes:
+      - ./frontend:/usr/src/app
+    ports:
+      - "3004:5173"
+    # depends_on:
+    #   - backend
+    environment:
+      LOG_LEVEL: "DEBUG"
