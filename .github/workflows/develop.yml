@@ -17,12 +17,6 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Check disk space before cleanup
-        run: df -h
-      - name: Clean up disk space
-        run: |
-          docker system prune -af
-          df -h
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -50,12 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Check disk space before cleanup
-        run: df -h
-      - name: Clean up disk space
-        run: |
-          docker system prune -af
-          df -h
       - name: Checkout
         uses: actions/checkout@v3
         with:

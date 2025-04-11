@@ -13,7 +13,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     mounted.current = true;
-    const ws = new WebSocket('ws://localhost:8000/ws');
+    const ws = new WebSocket('ws://localhost:8004/ws');
     setSocket(ws);
     ws.onopen = () => {
       console.log('WebSocket connection opened');
