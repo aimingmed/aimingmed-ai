@@ -23,7 +23,7 @@ RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv
 RUN pip install --no-cache-dir --find-links=/usr/src/app/wheels pipenv
 COPY ./Pipfile .
-RUN pipenv install --deploy
+RUN pipenv install --deploy --dev
 
 # add app
 COPY . /usr/src/app
