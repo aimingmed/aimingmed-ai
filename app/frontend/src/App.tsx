@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+const BASE_DOMAIN_NAME = process.env.REACT_APP_DOMAIN_NAME || 'localhost';
+
+
 interface Message {
   sender: 'user' | 'bot';
   text: string;
@@ -13,7 +16,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     mounted.current = true;
-    const ws = new WebSocket('ws://localhost:8000/ws');
+    const ws = new WebSocket(`ws://${BASE_DOMAIN_NAME}:8004/ws`);
     setSocket(ws);
     ws.onopen = () => {
       console.log('WebSocket connection opened');

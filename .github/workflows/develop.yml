@@ -1,9 +1,6 @@
 name: CI/CD - develop
 
 on: 
-  push:
-    branches:
-      - develop
   pull_request:
     branches:
       - develop
@@ -83,3 +80,4 @@ jobs:
       #   run: docker exec backend pipenv run python -m black . --check
       # - name: isort
       #   run: docker exec backend pipenv run python -m isort . --check-only
+      
