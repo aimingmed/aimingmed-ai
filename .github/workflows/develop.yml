@@ -81,4 +81,6 @@ jobs:
       #   run: docker exec backend pipenv run python -m black . --check
       # - name: isort
       #   run: docker exec backend pipenv run python -m isort . --check-only
-      
+      - name: Cleanup container at end of job
+        if: always()
+        run: docker stop backend || true && docker rm backend || true
