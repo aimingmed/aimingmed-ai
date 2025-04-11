@@ -67,6 +67,7 @@ jobs:
           docker run \
             -d \
             --name backend \
+            --memory=2g \
             -e PORT=8765 \
             -e ENVIRONMENT=dev \
             -e TESTING=0 \

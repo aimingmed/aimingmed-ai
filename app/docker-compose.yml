@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # streamlit:
   #   build: ./streamlit
@@ -24,17 +22,17 @@ services:
       - ENVIRONMENT=dev
       - TESTING=0
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.local
-    container_name: frontend
-    platform: linux/amd64
-    volumes:
-      - ./frontend:/usr/src/app
-    ports:
-      - "3004:5173"
-    depends_on:
-      - backend
-    environment:
-      LOG_LEVEL: "DEBUG"
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile.local
+  #   container_name: frontend
+  #   platform: linux/amd64
+  #   volumes:
+  #     - ./frontend:/usr/src/app
+  #   ports:
+  #     - "3004:5173"
+  #   # depends_on:
+  #   #   - backend
+  #   environment:
+  #     LOG_LEVEL: "DEBUG"
