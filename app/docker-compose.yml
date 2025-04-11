@@ -7,20 +7,20 @@ services:
   #   volumes:
   #     - ./llmops/src/rag_cot_evaluation/chroma_db:/app/llmops/src/rag_cot_evaluation/chroma_db
 
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: backend
-  #   platform: linux/amd64
-  #   command: pipenv run uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
-  #   volumes:
-  #     - ./backend:/usr/src/app
-  #   ports:
-  #     - "8004:8000"
-  #   environment:
-  #     - ENVIRONMENT=dev
-  #     - TESTING=0
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    platform: linux/amd64
+    command: pipenv run uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    volumes:
+      - ./backend:/usr/src/app
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=dev
+      - TESTING=0
 
   frontend:
     build:
