@@ -21,14 +21,13 @@ RUN apt-get update \
 
 
 # install python dependencies
-RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple && rm -rf ~/.cache/pip
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
 COPY ./Pipfile .
 RUN pipenv install --deploy --dev
 
 # add app
 COPY . /usr/src/app
-RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
+# RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
 # RUN pipenv run flake8 .
 # RUN pipenv run black --exclude=migrations . --check
 # RUN pipenv run isort . --check-only
@@ -67,7 +66,6 @@ RUN apt-get update \
 
 # install python dependencies
 COPY --from=builder /usr/src/app/Pipfile .
-RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple && rm -rf ~/.cache/pip
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
 RUN pipenv install --deploy --dev
 RUN pipenv run pip install "uvicorn[standard]==0.26.0"

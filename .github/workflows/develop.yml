@@ -21,10 +21,7 @@ jobs:
       - name: Cleanup Docker resources
         if: always()
         run: |
-          docker system prune -a -f --volumes \
-          && docker container prune -f \
-          && docker image prune -f \
-          && docker volume prune -f
+          docker system prune -a -f --volumes
       - name: Check disk space
         run: df -h
       - name: Checkout
@@ -50,9 +47,13 @@ jobs:
       - name: Push image
         run: |
           docker push ${{ env.IMAGE }}:latest
+      - name: Check disk space
+        run: df -h
       - name: Cleanup Docker resources
         if: always()
         run: docker system prune -a -f --volumes
+      - name: Check disk space
+        run: df -h
 
   test:
     name: Test Docker Image
