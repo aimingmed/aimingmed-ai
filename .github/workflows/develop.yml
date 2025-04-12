@@ -12,16 +12,11 @@ jobs:
 
   build:
     name: Build Docker Image
-    runs-on: ubuntu-latest-large
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Free up disk space
-        run: |
-          sudo apt-get clean
-          sudo rm -rf /var/lib/apt/lists/*
-          docker system prune -af
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -46,14 +41,9 @@ jobs:
 
   test:
     name: Test Docker Image
-    runs-on: ubuntu-latest-large
+    runs-on: self-hosted
     needs: build
     steps:
-      - name: Free up disk space
-        run: |
-          sudo apt-get clean
-          sudo rm -rf /var/lib/apt/lists/*
-          docker system prune -af
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -71,7 +61,8 @@ jobs:
             --cache-from ${{ env.IMAGE }}:latest \
             --tag ${{ env.IMAGE }}:latest \
             --file ./app/backend/Dockerfile.prod \
-            "./app/backend"
+            "./app/backend" \
+            --memory 8g
       - name: Run container
         run: |
           docker run \
@@ -81,7 +72,8 @@ jobs:
             -e ENVIRONMENT=dev \
             -e TESTING=0 \
             -p 8004:8765 \
-            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:latest \
+            --memory 8g
       - name: Pytest
         run: docker exec backend pipenv run python -m pytest tests --disable-warnings --maxfail=5
       # - name: Flake8
