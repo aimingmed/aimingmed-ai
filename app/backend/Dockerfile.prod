@@ -3,7 +3,7 @@
 ###########
 
 # pull official base image
-FROM python:3.11-slim as builder
+FROM python:3.11-alpine as builder
 
 
 # set working directory
@@ -15,12 +15,14 @@ ENV PYTHONUNBUFFERED=1
 
 # install system dependencies
 RUN apt-get update \
-    && apt-get -y install build-essential netcat-traditional gcc \
-    && apt-get clean
+    && apt-get -y install build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 
 # install python dependencies
-RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv
+RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple && rm -rf ~/.cache/pip
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
 COPY ./Pipfile .
 RUN pipenv install --deploy --dev
 
@@ -36,7 +38,7 @@ RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
 #########
 
 # pull official base image
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 # create directory for the app user
 RUN mkdir -p /home/app
@@ -59,13 +61,14 @@ ENV TESTING=0
 
 # install system dependencies
 RUN apt-get update \
-    && apt-get -y install build-essential netcat-traditional gcc \
-    && apt-get clean
+    && apt-get -y install build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # install python dependencies
 COPY --from=builder /usr/src/app/Pipfile .
-RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv
+RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple && rm -rf ~/.cache/pip
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
 RUN pipenv install --deploy --dev
 RUN pipenv run pip install "uvicorn[standard]==0.26.0"
 
