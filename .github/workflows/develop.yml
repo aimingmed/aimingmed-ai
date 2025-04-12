@@ -1,6 +1,6 @@
 name: CI/CD - develop
 
-on: 
+on:
   pull_request:
     branches:
       - develop
@@ -9,10 +9,9 @@ env:
   IMAGE: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/aimingmed-ai-backend
 
 jobs:
-
   build:
     name: Build Docker Image
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -41,7 +40,7 @@ jobs:
 
   test:
     name: Test Docker Image
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Checkout
@@ -62,7 +61,7 @@ jobs:
             --tag ${{ env.IMAGE }}:latest \
             --file ./app/backend/Dockerfile.prod \
             "./app/backend"
-            
+
       - name: Run container
         run: |
           docker run \
@@ -74,7 +73,7 @@ jobs:
             -e TESTING=0 \
             -p 8004:8765 \
             ${{ env.IMAGE }}:latest
-            
+
       - name: Pytest
         run: docker exec backend pipenv run python -m pytest tests --disable-warnings
       # - name: Flake8
