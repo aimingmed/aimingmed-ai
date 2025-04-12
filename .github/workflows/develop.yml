@@ -16,6 +16,9 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Cleanup Docker resources
+        if: always()
+        run: docker system prune -a -f --volumes
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -37,6 +40,9 @@ jobs:
       - name: Push image
         run: |
           docker push ${{ env.IMAGE }}:latest
+      - name: Cleanup Docker resources
+        if: always()
+        run: docker system prune -a -f --volumes
 
   test:
     name: Test Docker Image
@@ -61,7 +67,9 @@ jobs:
             --tag ${{ env.IMAGE }}:latest \
             --file ./app/backend/Dockerfile.prod \
             "./app/backend"
-
+      - name: Cleanup Docker resources
+        if: always()
+        run: docker system prune -a -f --volumes
       - name: Run container
         run: |
           docker run \

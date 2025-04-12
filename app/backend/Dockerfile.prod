@@ -3,7 +3,7 @@
 ###########
 
 # pull official base image
-FROM python:3.11-slim-bookworm as builder
+FROM python:3.11-slim as builder
 
 
 # set working directory
@@ -36,7 +36,7 @@ RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
 #########
 
 # pull official base image
-FROM python:3.11-slim-bookworm
+FROM python:3.11-slim
 
 # create directory for the app user
 RUN mkdir -p /home/app
