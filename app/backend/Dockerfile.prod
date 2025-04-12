@@ -2,31 +2,31 @@
 # BUILDER #
 ###########
 
-# # pull official base image
-# FROM python:3.11-slim as builder
+# pull official base image
+FROM python:3.11-slim-bookworm as builder
 
 
-# # set working directory
-# WORKDIR /usr/src/app
+# set working directory
+WORKDIR /usr/src/app
 
-# # set environment variables
-# ENV PYTHONDONTWRITEBYTECODE=1
-# ENV PYTHONUNBUFFERED=1
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# # install system dependencies
-# RUN apt-get update \
-#     && apt-get -y install build-essential netcat-traditional gcc \
-#     && apt-get clean
+# install system dependencies
+RUN apt-get update \
+    && apt-get -y install build-essential netcat-traditional gcc \
+    && apt-get clean
 
-# # install python dependencies
-# RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
-# RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv
-# COPY ./Pipfile .
-# RUN pipenv install --deploy --dev
+# install python dependencies
+RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv
+COPY ./Pipfile .
+RUN pipenv install --deploy --dev
 
-# # add app
-# COPY . /usr/src/app
-# RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
+# add app
+COPY . /usr/src/app
+RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
 # RUN pipenv run flake8 .
 # RUN pipenv run black --exclude=migrations . --check
 # RUN pipenv run isort . --check-only
@@ -36,7 +36,7 @@
 #########
 
 # pull official base image
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 # create directory for the app user
 RUN mkdir -p /home/app
@@ -63,10 +63,9 @@ RUN apt-get update \
     && apt-get clean
 
 # install python dependencies
-# COPY --from=builder /usr/src/app/Pipfile .
+COPY --from=builder /usr/src/app/Pipfile .
 RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv
-COPY ./Pipfile .
 RUN pipenv install --deploy --dev
 RUN pipenv run pip install "uvicorn[standard]==0.26.0"
 
@@ -78,6 +77,7 @@ RUN chown -R app:app $APP_HOME
 
 # change to the app user
 USER app
+
 
 # run gunicorn
 CMD pipenv run gunicorn --bind 0.0.0.0:$PORT backend.main:app -k uvicorn.workers.UvicornWorker
