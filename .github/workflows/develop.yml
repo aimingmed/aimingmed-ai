@@ -12,7 +12,7 @@ jobs:
 
   build:
     name: Build Docker Image
-    runs-on: Ubuntu-latest
+    runs-on: ubuntu-latest-large
     permissions:
       contents: read
       packages: write
@@ -46,7 +46,7 @@ jobs:
 
   test:
     name: Test Docker Image
-    runs-on: Ubuntu-latest
+    runs-on: ubuntu-latest-large
     needs: build
     steps:
       - name: Free up disk space
