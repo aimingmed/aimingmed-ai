@@ -61,8 +61,7 @@ jobs:
             --cache-from ${{ env.IMAGE }}:latest \
             --tag ${{ env.IMAGE }}:latest \
             --file ./app/backend/Dockerfile.prod \
-            --memory 8g \
-            "./app/backend" \
+            "./app/backend"
             
       - name: Run container
         run: |

@@ -11,10 +11,8 @@ pydantic-settings = "==2.1.0"
 gunicorn = "==21.0.1"
 python-decouple = "==3.8"
 pyyaml = "==6.0.1"
-docker = "*"
 chromadb = "*"
 sentence-transformers = "*"
-langchain = "*"
 langchain-deepseek = "*"
 
 [dev-packages]
