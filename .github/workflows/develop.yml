@@ -116,11 +116,6 @@ jobs:
             --memory="2g" \
             --memory-swap="3g" \
             ${{ env.IMAGE }}:latest
-      - name: Increase swap space
-        run: |
-          sudo dd if=/dev/zero of=/swapfile bs=1M count=4096
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
       - name: Monitor memory usage
         run: free -h
       - name: Pytest
