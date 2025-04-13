@@ -113,8 +113,8 @@ jobs:
             -e ENVIRONMENT=dev \
             -e TESTING=0 \
             -p 8004:8765 \
-            --memory="2g" \
-            --memory-swap="3g" \
+            --memory="4g" \
+            --memory-swap="5g" \
             ${{ env.IMAGE }}:latest
       - name: Monitor memory usage
         run: free -h
