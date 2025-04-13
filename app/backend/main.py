@@ -1,13 +1,11 @@
 import logging
 
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
-from config import get_settings, Settings
-
-from api import ping, chatbot
+from api import chatbot, ping
+from config import Settings, get_settings
 
 log = logging.getLogger("uvicorn")
 
