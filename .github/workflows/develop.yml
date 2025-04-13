@@ -22,6 +22,12 @@ jobs:
         if: always()
         run: |
           docker system prune -a -f --volumes
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
       - name: Check disk space
         run: df -h
       - name: Checkout
@@ -36,6 +42,7 @@ jobs:
         run: |
           docker pull ${{ env.IMAGE }}:latest || true
       - name: Check disk space
+        if: always()
         run: df -h
       - name: Build image
         run: |
@@ -48,11 +55,13 @@ jobs:
         run: |
           docker push ${{ env.IMAGE }}:latest
       - name: Check disk space
+        if: always()
         run: df -h
       - name: Cleanup Docker resources
         if: always()
         run: docker system prune -a -f --volumes
       - name: Check disk space
+        if: always()
         run: df -h
 
   test:
@@ -73,10 +82,17 @@ jobs:
       - name: Cleanup Docker resources
         if: always()
         run: docker system prune -a -f --volumes
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
       - name: Pull image
         run: |
           docker pull ${{ env.IMAGE }}:latest || true
       - name: Check disk space
+        if: always()
         run: df -h
       - name: Build image
         run: |
@@ -85,6 +101,9 @@ jobs:
             --tag ${{ env.IMAGE }}:latest \
             --file ./app/backend/Dockerfile.prod \
             "./app/backend"
+      - name: Check disk space
+        if: always()
+        run: df -h
       - name: Run container
         run: |
           docker run \
