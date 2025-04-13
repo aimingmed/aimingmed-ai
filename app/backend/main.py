@@ -11,7 +11,7 @@ from api import ping, chatbot
 
 log = logging.getLogger("uvicorn")
 
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:8004"]
 
 def create_application() -> FastAPI:
     application = FastAPI()
@@ -32,5 +32,5 @@ app.add_middleware(
 )
 
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+# if __name__ == "__main__":
+#     uvicorn.run("main:app", host="0.0.0.0", port=8765, reload=True)

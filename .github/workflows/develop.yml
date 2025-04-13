@@ -116,12 +116,12 @@ jobs:
             ${{ env.IMAGE }}:latest
       - name: Monitor memory usage
         run: free -h
-      - name: Run Pytest directly
-        run: |
-          # install python 3.11 and pip3
-          sudo apt-get update
-          sudo apt-get install -y python3.11 python3.11-distutils
-          pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && cd ./app/backend/ && pipenv install && pipenv run python -m pytest --disable-warnings
+      # - name: Run Pytest directly
+      #   run: |
+      #     # install python 3.11 and pip3
+      #     sudo apt-get update
+      #     sudo apt-get install -y python3.11 python3.11-distutils
+      #     pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && cd ./app/backend/ && pipenv install && pipenv run python -m pytest --disable-warnings
       - name: Pytest
         run: docker exec backend-backend pipenv run python -m pytest -v
       # - name: Flake8
