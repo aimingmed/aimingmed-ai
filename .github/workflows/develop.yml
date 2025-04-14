@@ -113,6 +113,12 @@ jobs:
         run: |
           docker run \
             -d \
+            -e DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }} \
+            -e DEEPSEEK_API_URL=${{ secrets.DEEPSEEK_API_URL }} \
+            -e ENVIRONMENT=dev \
+            -e TESTING=0 \
+            -e PORT=8765 \
+            -e LOG_LEVEL=DEBUG \
             --name backend-backend \
             -p 8004:8765 \
             ${{ env.IMAGE }}:latest
