@@ -77,5 +77,8 @@ RUN chown -R app:app $APP_HOME
 # change to the app user
 USER app
 
-# run gunicorn
-CMD pipenv run gunicorn --bind 0.0.0.0:$PORT backend.main:app -k uvicorn.workers.UvicornWorker
+# expose the port the app runs on
+EXPOSE 8765
+
+# run uvicorn
+CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "8765"]
