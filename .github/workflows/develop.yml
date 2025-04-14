@@ -104,6 +104,8 @@ jobs:
       - name: Check disk space
         if: always()
         run: df -h
+      - name: Validate Docker image
+        run: docker inspect ${{ env.IMAGE }}:latest
       - name: Run container
         run: |
           docker run \
@@ -116,6 +118,11 @@ jobs:
             ${{ env.IMAGE }}:latest
       - name: Monitor memory usage
         run: free -h
+      - name: Test port accessibility
+        run: curl -v http://localhost:8004 || echo "Service not reachable"
+      - name: Get container logs
+        if: failure()
+        run: docker logs backend-backend
       # - name: Run Pytest directly
       #   run: |
       #     # install python 3.11 and pip3
