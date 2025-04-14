@@ -122,17 +122,11 @@ jobs:
             --name backend-backend \
             -p 8004:8765 \
             ${{ env.IMAGE }}:latest
-        env:
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          DEEPSEEK_API_URL: ${{ secrets.DEEPSEEK_API_URL }}
-          ENVIRONMENT: dev
-          TESTING: 0
-          PORT: 8765
 
       - name: Monitor memory usage
         run: free -h
       - name: Test port accessibility
-        run: curl -v http://localhost:8004 || echo "Service not reachable"
+        run: curl -v http://localhost:8004
       - name: Get container logs
         if: failure()
         run: docker logs backend-backend
