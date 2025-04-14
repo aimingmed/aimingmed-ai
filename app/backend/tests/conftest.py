@@ -1,7 +1,7 @@
 import pytest
 from starlette.testclient import TestClient
 
-from config import get_settings, Settings
+from config import Settings, get_settings
 from main import create_application
 
 

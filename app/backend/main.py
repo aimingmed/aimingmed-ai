@@ -1,17 +1,15 @@
 import logging
 
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-
-from config import get_settings, Settings
-
-from api import ping, chatbot
+from api import chatbot, ping
+from config import Settings, get_settings
 
 log = logging.getLogger("uvicorn")
 
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:8004"]
 
 def create_application() -> FastAPI:
     application = FastAPI()
@@ -32,5 +30,5 @@ app.add_middleware(
 )
 
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=3100, reload=True)
+# if __name__ == "__main__":
+#     uvicorn.run("main:app", host="0.0.0.0", port=8765, reload=True)

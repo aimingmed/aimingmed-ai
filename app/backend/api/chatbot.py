@@ -1,23 +1,13 @@
-from decouple import config
-
-import os
 import json
+import os
 
-from fastapi import (
-    APIRouter, 
-    WebSocketDisconnect
-)
-
-from fastapi import WebSocket, WebSocketDisconnect
-
+from decouple import config
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from langchain_deepseek import ChatDeepSeek
 
+from models.adaptive_rag import grading, query, routing
+
 from .utils import ConnectionManager
-from models.adaptive_rag import (
-    query,
-    routing,
-    grading
-)
 
 router = APIRouter()
 

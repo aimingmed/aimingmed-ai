@@ -3,7 +3,7 @@
 ###########
 
 # pull official base image
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim-bookworm AS builder
 
 
 # set working directory
@@ -14,20 +14,18 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # install system dependencies
-RUN apt-get update \
-    && apt-get -y install build-essential netcat-traditional gcc \
-    && apt-get clean
+# RUN apt-get update && apt-get -y install build-essential \
+# && apt-get clean \
+# && rm -rf /var/lib/apt/lists/*
 
 # install python dependencies
-RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv
-RUN pip install --no-cache-dir --find-links=/usr/src/app/wheels pipenv
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
 COPY ./Pipfile .
 RUN pipenv install --deploy --dev
 
 # add app
 COPY . /usr/src/app
-RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
+# RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
 # RUN pipenv run flake8 .
 # RUN pipenv run black --exclude=migrations . --check
 # RUN pipenv run isort . --check-only
@@ -37,7 +35,7 @@ RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
 #########
 
 # pull official base image
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 # create directory for the app user
 RUN mkdir -p /home/app
@@ -59,15 +57,14 @@ ENV ENVIRONMENT=prod
 ENV TESTING=0
 
 # install system dependencies
-RUN apt-get update \
-    && apt-get -y install build-essential netcat-traditional gcc \
-    && apt-get clean
+# RUN apt-get update \
+#    && apt-get -y install build-essential \
+#   && apt-get clean \
+#&& rm -rf /var/lib/apt/lists/*
 
 # install python dependencies
-COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/Pipfile .
-RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip install --no-cache /wheels/*
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
 RUN pipenv install --deploy --dev
 RUN pipenv run pip install "uvicorn[standard]==0.26.0"
 
@@ -80,6 +77,8 @@ RUN chown -R app:app $APP_HOME
 # change to the app user
 USER app
 
+# pytest
+RUN pipenv run pytest --disable-warnings -v
 
 # run gunicorn
 CMD pipenv run gunicorn --bind 0.0.0.0:$PORT backend.main:app -k uvicorn.workers.UvicornWorker

@@ -1,6 +1,6 @@
 name: CI/CD - develop
 
-on: 
+on:
   pull_request:
     branches:
       - develop
@@ -9,14 +9,27 @@ env:
   IMAGE: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/aimingmed-ai-backend
 
 jobs:
-
   build:
     name: Build Docker Image
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
+      - name: Check disk space
+        run: df -h
+      - name: Cleanup Docker resources
+        if: always()
+        run: |
+          docker system prune -a -f --volumes
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      - name: Check disk space
+        run: df -h
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -28,6 +41,9 @@ jobs:
       - name: Pull image
         run: |
           docker pull ${{ env.IMAGE }}:latest || true
+      - name: Check disk space
+        if: always()
+        run: df -h
       - name: Build image
         run: |
           docker build \
@@ -38,12 +54,26 @@ jobs:
       - name: Push image
         run: |
           docker push ${{ env.IMAGE }}:latest
+      - name: Check disk space
+        if: always()
+        run: df -h
+      - name: Cleanup Docker resources
+        if: always()
+        run: docker system prune -a -f --volumes
+      - name: Check disk space
+        if: always()
+        run: df -h
 
   test:
     name: Test Docker Image
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
+      packages: write
     steps:
+      - name: Check disk space
+        run: df -h
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -52,9 +82,21 @@ jobs:
         run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Cleanup Docker resources
+        if: always()
+        run: docker system prune -a -f --volumes
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
       - name: Pull image
         run: |
           docker pull ${{ env.IMAGE }}:latest || true
+      - name: Check disk space
+        if: always()
+        run: df -h
       - name: Build image
         run: |
           docker build \
@@ -62,24 +104,43 @@ jobs:
             --tag ${{ env.IMAGE }}:latest \
             --file ./app/backend/Dockerfile.prod \
             "./app/backend"
+      - name: Check disk space
+        if: always()
+        run: df -h
+      - name: Validate Docker image
+        run: docker inspect ${{ env.IMAGE }}:latest
       - name: Run container
         run: |
           docker run \
             -d \
-            --name backend \
-            -e PORT=8765 \
+            -e DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }} \
+            -e TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }} \
             -e ENVIRONMENT=dev \
             -e TESTING=0 \
+            -e PORT=8765 \
+            -e LOG_LEVEL=DEBUG \
+            --name backend-backend \
             -p 8004:8765 \
             ${{ env.IMAGE }}:latest
+      - name: Monitor memory usage
+        run: free -h
+      - name: Get container logs
+        if: failure()
+        run: docker logs backend-backend
+      # - name: Run Pytest directly
+      #   run: |
+      #     # install python 3.11 and pip3
+      #     sudo apt-get update
+      #     sudo apt-get install -y python3.11 python3.11-distutils
+      #     pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && cd ./app/backend/ && pipenv install && pipenv run python -m pytest --disable-warnings
       # - name: Pytest
-        # run: docker exec backend pipenv run python -m pytest tests --disable-warnings --maxfail=5
+      #   run: docker exec backend-backend pipenv run python -m pytest -v
       # - name: Flake8
-      #   run: docker exec backend pipenv run python -m flake8 .
+      #   run: docker exec backend-backend pipenv run python -m flake8 .
       # - name: Black
-      #   run: docker exec backend pipenv run python -m black . --check
-      # - name: isort
-      #   run: docker exec backend pipenv run python -m isort . --check-only
+      #   run: docker exec backend-backend pipenv run python -m black . --check
+      - name: isort
+        run: docker exec backend-backend pipenv run python -m isort . --check-only
       - name: Cleanup container at end of job
         if: always()
-        run: docker stop backend || true && docker rm backend || true
+        run: docker stop backend-backend || true && docker rm backend-backend || true
