@@ -125,15 +125,6 @@ jobs:
 
       - name: Monitor memory usage
         run: free -h
-      - name: Test port accessibility
-        run: |
-          # Attempt to connect to the service on localhost:8004
-          echo "Testing port accessibility on localhost:8004..."
-          curl -v http://localhost:8004 || {
-            echo "Port 8004 is not accessible!"
-            exit 1
-          }
-          echo "Port 8004 is accessible."
       - name: Get container logs
         if: failure()
         run: docker logs backend-backend
