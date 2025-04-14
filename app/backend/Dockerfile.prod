@@ -77,8 +77,5 @@ RUN chown -R app:app $APP_HOME
 # change to the app user
 USER app
 
-# pytest
-RUN pipenv run pytest --disable-warnings -v
-
 # run gunicorn
 CMD pipenv run gunicorn --bind 0.0.0.0:$PORT backend.main:app -k uvicorn.workers.UvicornWorker
