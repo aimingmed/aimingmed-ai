@@ -46,7 +46,7 @@ jobs:
             ARGS: "" # Default empty ARGS
 
     # Call the reusable workflow
-    uses: templates/template_build.yml@develop # Path to the reusable workflow file
+    uses: .github/workflows/templates/template_build.yml@develop # Path to the reusable workflow file
     # Pass inputs required by the reusable workflow
     with:
       # Pass values from the matrix context and global env
