@@ -1,0 +1,276 @@
+# This is a reusable workflow template for setting up Docker Compose and running integration tests.
+
+name: Reusable Integration Test Template
+
+# Define inputs expected from the calling workflow
+on:
+  workflow_call:
+    inputs:
+      project_name:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+      # JSON string representing the list of image configurations for docker-compose
+      images_config_json:
+        required: true
+        type: string
+      # JSON string representing the list of test directories to execute
+      tests_to_run_json:
+        required: true
+        type: string
+      # Newline-separated string of environment variables for the test runner container
+      test_envs_newline:
+        required: false
+        type: string
+        default: ""
+      test_container_name:
+        required: false
+        type: string
+        default: "tests" # Default from ADO template
+      test_results_path_in_container:
+        required: false
+        type: string
+        default: "/usr/src/app/results" # Default from ADO template
+      test_results_filename:
+        required: false
+        type: string
+        default: "results.xml" # Default from ADO template
+      # Use the build ID (run_id) for tagging images pulled/run
+      build_id:
+        required: true
+        type: string # Pass run_id as string
+
+    # Define secrets required by this reusable workflow
+    secrets:
+      ARTIFACTORY_USER:
+        required: true
+      ARTIFACTORY_PASSWORD:
+        required: true
+
+jobs:
+  compose-and-test:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    # Set default shell to pwsh for the compose generation step
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repo
+        # Checks out the repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1 # As per original ADO checkout
+
+      - name: Create Docker-Compose File from JSON input
+        # Translates the PowerShell script from ADO template_test.yml
+        # Uses PowerShell Core (pwsh) available on ubuntu-latest runners
+        env:
+          # Pass inputs as environment variables for the script
+          IMAGES_JSON: ${{ inputs.images_config_json }}
+          REPO_VAR: ${{ inputs.repo }}
+          PROJECT_NAME_VAR: ${{ inputs.project_name }}
+          TAG_VAR: ${{ inputs.build_id }}
+        run: |
+          # Load Images Parameter from environment variable
+          # Use -Raw to prevent PowerShell from potentially misinterpreting complex JSON
+          $imagesJson = Get-Content -Raw -Path Env:IMAGES_JSON
+          # Write-Host "DEBUG: Received images JSON: $imagesJson" # Debugging line
+          try {
+              $images = $imagesJson | ConvertFrom-Json
+          } catch {
+              Write-Error "Failed to parse IMAGES_JSON: $($_.Exception.Message)"
+              Write-Error "JSON content was: $imagesJson"
+              exit 1
+          }
+
+          # create compose Outlet
+          $compose = @{version = "3.6"; services = @{}}
+          # Define network (matches ADO template)
+          $compose.networks = @{test = @{ external = $true; name = "test" }}
+
+          # Generate services Section Based on Images inputs
+          foreach ($imageInfo in $images) {
+              $svc = [ordered]@{} # Use ordered dictionary for consistency
+
+              # Determine image name - use explicit image if provided, otherwise construct it
+              if ($imageInfo.PSObject.Properties['image']) {
+                  $svc.image = $imageInfo.image
+              } else {
+                  # Construct image path using REPO, PROJECT_NAME, image name, and TAG
+                  $svc.image = "${env:REPO_VAR}/${env:PROJECT_NAME_VAR}/$($imageInfo.name):${env:TAG_VAR}"
+              }
+
+              # Add depends_on if present in the input
+              if ($imageInfo.PSObject.Properties['depends_on']) {
+                  $svc.depends_on = $imageInfo.depends_on
+              }
+
+              # Add environment variables if present, otherwise empty object
+              $svc.environment = if ($imageInfo.PSObject.Properties['env']) { $imageInfo.env } else { @{} }
+
+              # Assign service to test network
+              $svc.networks = @("test")
+
+              # Add the service definition to the compose structure
+              $compose.services.($imageInfo.name) = $svc
+          }
+
+          # Write File as YAML (standard for docker-compose)
+          # Use ConvertTo-Yaml function (requires installing module) or ConvertTo-Json
+          # Let's stick to JSON for direct translation, assuming docker-compose handles it,
+          # but rename to .yml as that's standard practice.
+          # Update: docker-compose CLI generally expects YAML. Let's output YAML.
+          # We need to install a module for ConvertTo-Yaml.
+          Install-Module -Name PSYaml -Force -Scope CurrentUser -ErrorAction SilentlyContinue
+          Import-Module PSYaml -ErrorAction SilentlyContinue
+
+          try {
+              $yamlOutput = $compose | ConvertTo-Yaml -Depth 10
+              # Write-Host "DEBUG: Generated YAML: $yamlOutput" # Debugging line
+              $yamlOutput | Out-File -Encoding UTF8 ./test_compose.yml
+              Write-Host "Successfully generated test_compose.yml"
+          } catch {
+              Write-Error "Failed to convert to YAML or write file: $($_.Exception.Message)"
+              # Fallback or alternative if YAML fails - write JSON
+              # Write-Host "Falling back to JSON output as test_compose.json"
+              # $compose | ConvertTo-Json -Depth 10 | Out-File -Encoding UTF8 ./test_compose.json
+              exit 1
+          }
+
+      - name: Login to Artifactory
+        # Uses secrets passed from the calling workflow via inherit
+        uses: docker/login-action@v3
+        # Switch back to default shell (bash) if needed for subsequent steps
+        shell: bash
+        with:
+          registry: ${{ inputs.repo }}
+          username: ${{ secrets.ARTIFACTORY_USER }}
+          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+
+      - name: Create Docker Test Network
+        # Equivalent to ADO script task, || true becomes continue-on-error
+        shell: bash
+        continue-on-error: true
+        run: docker network create test
+
+      - name: Clean Docker Services Before Test
+        # Equivalent to ADO script task
+        shell: bash
+        run: docker-compose -f test_compose.yml down -v --remove-orphans
+
+      - name: Start Docker Compose Services
+        # Equivalent to ADO script task
+        shell: bash
+        env:
+          # Pass variables needed by compose file if image tag wasn't hardcoded during generation
+          # Note: The PowerShell script above now bakes the full image path with tag in.
+          # TAG: ${{ inputs.build_id }}
+          # REPO: ${{ inputs.repo }}
+          # PROJECT_NAME: ${{ inputs.project_name }}
+        run: |
+          echo "--- Generated docker-compose.yml ---"
+          cat test_compose.yml
+          echo "------------------------------------"
+          docker-compose -f test_compose.yml up -d
+          echo "Docker containers started."
+
+      - name: Wait for Services
+        # Equivalent to ADO sleep task
+        shell: bash
+        run: |
+          echo "Waiting 60 seconds for services to initialize..."
+          sleep 60
+          echo "Wait complete. Checking container status:"
+          docker ps -a
+
+      - name: Prepare Test Environment File
+        # Create a file from the newline-separated input string for docker run --env-file
+        shell: bash
+        run: |
+          echo "${{ inputs.test_envs_newline }}" > ./test_env_vars.env
+          echo "Created test_env_vars.env file."
+          # Add build ID as a default test env var like in ADO coalesce
+          echo "DUMMY_ENV_TEST_RUN_ID=${{ inputs.build_id }}" >> ./test_env_vars.env
+
+      - name: Create Results Directory on Runner
+        shell: bash
+        run: mkdir -p ${{ runner.temp }}/test-results
+
+      - name: Run Tests Iteratively
+        # This step iterates through the test directories provided in the JSON input
+        shell: bash
+        env:
+          TESTS_JSON: ${{ inputs.tests_to_run_json }}
+          TEST_CONTAINER_IMAGE: ${{ inputs.repo }}/${{ inputs.project_name }}/${{ inputs.test_container_name }}:${{ inputs.build_id }}
+          RESULTS_PATH_HOST: ${{ runner.temp }}/test-results
+          RESULTS_PATH_CONTAINER: ${{ inputs.test_results_path_in_container }}
+        run: |
+          echo "Running tests for image: $TEST_CONTAINER_IMAGE"
+          echo "Host results dir: $RESULTS_PATH_HOST"
+          echo "Container results dir: $RESULTS_PATH_CONTAINER"
+
+          # Check if jq is installed, install if not
+          if ! command -v jq &> /dev/null
+          then
+              echo "jq could not be found, installing..."
+              sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+          # Parse the JSON array of test directories
+          # Use mapfile/readarray for safer parsing than simple iteration
+          readarray -t test_dirs < <(echo $TESTS_JSON | jq -c -r '.[]')
+
+          if [ ${#test_dirs[@]} -eq 0 ]; then
+              echo "Warning: No test directories found in TESTS_JSON input."
+              exit 0 # Exit successfully if no tests are specified
+          fi
+
+          echo "Found ${#test_dirs[@]} test directories to run."
+
+          # Loop through the array and run docker for each test directory
+          for test_dir in "${test_dirs[@]}"; do
+            echo "--- Running test: $test_dir ---"
+            docker run \
+              --network test \
+              --env-file ./test_env_vars.env \
+              -v "$RESULTS_PATH_HOST":"$RESULTS_PATH_CONTAINER" \
+              --rm \
+              "$TEST_CONTAINER_IMAGE" \
+              "$test_dir" || echo "Test run failed for $test_dir" # Continue even if one test fails
+            echo "--- Finished test: $test_dir ---"
+          done
+          echo "All specified test runs attempted."
+
+      - name: Publish Test Results
+        # Uses a dedicated action to publish results, equivalent to PublishTestResults@2
+        # This action looks for JUnit XML files in the specified path.
+        if: always() # Run this even if previous steps fail
+        uses: dorny/test-reporter@v1
+        with:
+          name: Integration Test Results (${{ inputs.project_name }})
+          # Path is relative to the workspace root, but we put results in runner.temp
+          # Need to adjust path pattern to match the mounted host directory
+          path: ${{ runner.temp }}/test-results/${{ inputs.test_results_filename }}
+          reporter: java-junit # Specify the format
+          fail-on-error: false # Don't fail the workflow step if parsing/upload fails
+
+      - name: Print Docker Logs on Failure/Completion
+        # Equivalent to ADO CmdLine@2 Print Logs
+        if: always() # Run this even if previous steps fail
+        shell: bash
+        run: |
+          echo "--- Printing Docker Compose logs ---"
+          docker-compose -f test_compose.yml logs
+          echo "------------------------------------"
+
+      - name: Clean Docker Services After Test
+        # Optional: Clean up containers/networks after run
+        if: always()
+        shell: bash
+        run: |
+          echo "Cleaning up docker-compose services..."
+          docker-compose -f test_compose.yml down -v --remove-orphans
+          echo "Cleanup complete."

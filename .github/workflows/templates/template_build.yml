@@ -1,0 +1,170 @@
+# This is a reusable workflow template containing the Docker build logic for one image.
+# It's called by build.yml for each item in the matrix.
+
+name: Reusable Docker Build Template
+
+# Define inputs expected from the calling workflow
+on:
+  workflow_call:
+    inputs:
+      project_name:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+      image_name:
+        required: true
+        type: string
+      build_context:
+        required: true
+        type: string
+      dockerfile:
+        required: true
+        type: string
+      intermediate_container:
+        required: false # Optional input
+        type: string
+        default: ''
+      args:
+        required: false # Optional input
+        type: string
+        default: ''
+      build_id:
+        required: true
+        type: string # Pass run_id as string
+      commit_sha:
+        required: true
+        type: string
+    # Define secrets required by this reusable workflow
+    # These will be provided by the caller using 'secrets: inherit' or explicit mapping
+    secrets:
+      ARTIFACTORY_USER:
+        required: true
+      ARTIFACTORY_PASSWORD:
+        required: true
+      # ARTIFACT_FEED_READ_TOKEN_B64 is needed by the caller to construct 'args',
+      # but not directly used in this template file unless ARGS logic changes.
+      # If needed directly, add it here too.
+
+jobs:
+  build-single-image:
+    # This job executes the build steps for the specific image configuration passed via inputs
+    name: Build ${{ inputs.image_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120 # From original ADO template
+
+    steps:
+      - name: Checkout repo
+        # Checks out the repository code
+        uses: actions/checkout@v3
+        with:
+          ref: develop # Use the branch specified in the calling workflow
+      - name: Set up Docker Buildx
+        # Recommended for improved build features and caching
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Packages
+        run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Nuke Docker Cache
+        # Equivalent to CmdLine@2 Nuke Cache
+        run: |
+          echo "Pruning Docker system..."
+          docker system prune -a -f --volumes
+        # Comment from ADO: we clear the cache to prevent it from filling up...
+
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Check disk space
+        run: df -h
+
+      - name: Define Image Tags
+        # Define tags consistently using inputs
+        id: tags
+        run: |
+          echo "image_repo_path=${{ inputs.repo }}/${{ inputs.project_name }}/${{ inputs.image_name }}" >> $GITHUB_OUTPUT
+          echo "tag_build_id=${{ inputs.build_id }}" >> $GITHUB_OUTPUT
+          echo "tag_commit_sha=${{ inputs.commit_sha }}" >> $GITHUB_OUTPUT
+
+      - name: Pull Latest Image for Cache
+        # Pulls the latest tag if it exists
+        continue-on-error: true # Mimics '|| true'
+        run: |
+          echo "Attempting to pull latest image for cache: ${{ steps.tags.outputs.image_repo_path }}:latest"
+          docker pull ${{ steps.tags.outputs.image_repo_path }}:latest
+
+      - name: Pull Intermediate Image for Cache
+        # Pulls the intermediate tag if specified and exists
+        if: inputs.intermediate_container != ''
+        continue-on-error: true # Mimics '|| true'
+        run: |
+          echo "Attempting to pull intermediate image for cache: ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}"
+          docker pull ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}
+
+      - name: Build Intermediate Image
+        # Builds the intermediate target if specified
+        if: inputs.intermediate_container != ''
+        run: |
+          echo "Building intermediate image: ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}"
+          docker build \
+            -f ${{ inputs.dockerfile }} \
+            --pull \
+            --cache-from type=registry,ref=${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }} \
+            -t ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }} \
+            --target ${{ inputs.intermediate_container }} \
+            ${{ inputs.args }} \
+            ${{ inputs.build_context }}
+
+      - name: Build Final Image (with Intermediate Cache)
+        # Builds the final image using intermediate cache if specified
+        if: inputs.intermediate_container != ''
+        run: |
+          echo "Building final image with intermediate cache..."
+          docker build \
+            -f ${{ inputs.dockerfile }} \
+            --pull \
+            --cache-from type=registry,ref=${{ steps.tags.outputs.image_repo_path }}:latest \
+            --cache-from type=registry,ref=${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }} \
+            -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }} \
+            -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }} \
+            -t ${{ steps.tags.outputs.image_repo_path }}:latest \
+            ${{ inputs.args }} \
+            ${{ inputs.build_context }}
+
+      - name: Build Final Image (without Intermediate Cache)
+        # Builds the final image without intermediate cache if not specified
+        if: inputs.intermediate_container == ''
+        run: |
+          echo "Building final image without intermediate cache..."
+          docker build \
+            -f ${{ inputs.dockerfile }} \
+            --pull \
+            --cache-from type=registry,ref=${{ steps.tags.outputs.image_repo_path }}:latest \
+            -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }} \
+            -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }} \
+            -t ${{ steps.tags.outputs.image_repo_path }}:latest \
+            ${{ inputs.args }} \
+            ${{ inputs.build_context }}
+
+      - name: Push Final Image Tags
+        # Pushes the final tags (build id, commit sha, latest)
+        run: |
+          echo "Pushing final image tags..."
+          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }}
+          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }}
+          docker push ${{ steps.tags.outputs.image_repo_path }}:latest
+
+      - name: Push Intermediate Image
+        # Pushes the intermediate tag if it was built
+        if: inputs.intermediate_container != ''
+        run: |
+          echo "Pushing intermediate image tag..."
+          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}

@@ -1,0 +1,68 @@
+# .github/workflows/build.yml
+# This workflow triggers the build process and calls the reusable template.
+
+name: Build aimingmed-ai ${{ github.ref_name }}+${{ github.run_id }}
+
+# Triggers: Equivalent to ADO trigger block
+on:
+  push:
+    branches:
+      - development
+    paths:
+      - 'app/**'
+      - '.github/workflows/**'
+  # Allow manual triggering from GitHub UI
+  workflow_dispatch:
+
+# Concurrency: Equivalent to batch: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Global environment variables accessible in the calling job
+env:
+  PROJECT_NAME: aimingmed-ai
+  REPO: https://github.com/aimingmed # Updated repo for aimingmed-ai
+
+jobs:
+  # This job defines the matrix and calls the reusable workflow for each image
+  call-build-template:
+    name: Build ${{ matrix.image_config.IMAGE_NAME }}
+    # Define necessary permissions if needed (e.g., for GitHub Packages)
+    permissions:
+      contents: read
+      packages: write # If pushing to GitHub Packages registry
+
+    # Use secrets defined in the repository/organization settings
+    # 'inherit' makes all secrets available to the called workflow
+    secrets: inherit
+
+    # Define the matrix strategy based on the 'images' object from the original ADO build.yml
+    strategy:
+      fail-fast: false # Don't cancel other matrix jobs if one fails
+      matrix:
+        # We wrap the image configuration in a single 'image_config' key
+        # to pass it more easily if needed, but primarily access sub-keys directly.
+        image_config:
+          - IMAGE_NAME: backend-aimingmedai
+            BUILD_CONTEXT: ./app/backend
+            DOCKERFILE: ./app/backend/Dockerfile
+            INTERMEDIATE_CONTAINER: builder
+            ARGS: "" # Default empty ARGS
+
+    # Call the reusable workflow
+    uses: templates/template_build.yml # Path to the reusable workflow file
+    # Pass inputs required by the reusable workflow
+    with:
+      # Pass values from the matrix context and global env
+      project_name: ${{ env.PROJECT_NAME }}
+      repo: ${{ env.REPO }}
+      image_name: ${{ matrix.image_config.IMAGE_NAME }}
+      build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
+      dockerfile: ${{ matrix.image_config.DOCKERFILE }}
+      # Provide default empty strings if matrix values might be null/undefined
+      intermediate_container: ${{ matrix.image_config.INTERMEDIATE_CONTAINER || '' }}
+      args: ${{ matrix.image_config.ARGS || '' }}
+      # Pass run-specific context needed for tagging
+      build_id: ${{ github.run_id }}
+      commit_sha: ${{ github.sha }}
