@@ -1,0 +1,84 @@
+###########
+# BUILDER #
+###########
+
+# pull official base image
+FROM python:3.11-slim-bookworm AS builder
+
+
+# set working directory
+WORKDIR /usr/src/app
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# install system dependencies
+# RUN apt-get update && apt-get -y install build-essential \
+# && apt-get clean \
+# && rm -rf /var/lib/apt/lists/*
+
+# install python dependencies
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
+COPY ./Pipfile .
+RUN pipenv install --deploy --dev
+
+# add app
+COPY . /usr/src/app
+# RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
+# RUN pipenv run flake8 .
+# RUN pipenv run black --exclude=migrations . --check
+# RUN pipenv run isort . --check-only
+
+#########
+# FINAL #
+#########
+
+# pull official base image
+FROM python:3.11-slim-bookworm
+
+# create directory for the app user
+RUN mkdir -p /home/app
+
+# create the app user
+RUN addgroup --system app && adduser --system --group app
+
+
+# create the appropriate directories
+ENV HOME=/home/app
+ENV APP_HOME=/home/app/backend
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV ENVIRONMENT=prod
+ENV TESTING=0
+
+# install system dependencies
+# RUN apt-get update \
+#    && apt-get -y install build-essential \
+#   && apt-get clean \
+#&& rm -rf /var/lib/apt/lists/*
+
+# install python dependencies
+COPY --from=builder /usr/src/app/Pipfile .
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
+RUN pipenv install --deploy --dev
+RUN pipenv run pip install "uvicorn[standard]==0.26.0"
+
+# add app
+COPY . $APP_HOME
+
+# chown all the files to the app user
+RUN chown -R app:app $APP_HOME
+
+# change to the app user
+USER app
+
+# expose the port the app runs on
+EXPOSE 8765
+
+# run uvicorn
+CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "8765"]
