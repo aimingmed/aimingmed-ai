@@ -1,23 +1,40 @@
 # pull official base image
-FROM python:3.11-slim
+FROM python:3.11-slim-bullseye
 
-# set working directory
-WORKDIR /usr/src/app
+# create directory for the app user
+RUN mkdir -p /home/app
+
+# create the app user
+RUN addgroup --system app && adduser --system --group app
+
+# create the appropriate directories
+ENV HOME=/home/app
+ENV APP_HOME=/home/app/backend
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
 
 # set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV ENVIRONMENT=prod
+ENV TESTING=0
 
-# install system dependencies
-RUN apt-get update \
-    && apt-get -y install build-essential netcat-traditional gcc \
-    && apt-get clean
-
-# install python dependencies
-RUN pip install --upgrade pip setuptools wheel -i https://pypi.tuna.tsinghua.edu.cn/simple
-RUN pip install pipenv -i https://pypi.tuna.tsinghua.edu.cn/simple 
-COPY ./Pipfile .
-RUN pipenv install --deploy --dev
 
 # add app
-COPY . .
+COPY . $APP_HOME
+
+# install python dependencies
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
+RUN pipenv install --deploy --dev
+
+# chown all the files to the app user
+RUN chown -R app:app $APP_HOME
+
+# change to the app user
+USER app
+
+# expose the port the app runs on
+EXPOSE 8765
+
+# run uvicorn
+CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "8765"]

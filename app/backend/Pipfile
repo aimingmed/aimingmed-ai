@@ -6,7 +6,7 @@ name = "pypi"
 [packages]
 fastapi = "==0.115.9"
 starlette = "==0.45.3"
-uvicorn = "==0.26.0"
+uvicorn = {version = "==0.26.0", extras = ["standard"]}
 pydantic-settings = "==2.1.0"
 gunicorn = "==21.0.1"
 python-decouple = "==3.8"
