@@ -1,6 +1,3 @@
-# .github/workflows/build.yml
-# This workflow triggers the build process and calls the reusable template.
-
 name: Build aimingmed-ai ${{ github.ref_name }}+${{ github.run_id }}
 
 # Triggers: Equivalent to ADO trigger block
