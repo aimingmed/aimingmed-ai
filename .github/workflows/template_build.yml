@@ -22,14 +22,6 @@ on:
       dockerfile:
         required: true
         type: string
-      intermediate_container:
-        required: false # Optional input
-        type: string
-        default: ''
-      args:
-        required: false # Optional input
-        type: string
-        default: ''
       build_id:
         required: true
         type: string # Pass run_id as string
@@ -148,8 +140,8 @@ jobs:
         # Pushes the final tags (build id, commit sha, latest)
         run: |
           echo "Pushing final image tags..."
-          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }}
-          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }}
+          # docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }}
+          # docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }}
           docker push ${{ steps.tags.outputs.image_repo_path }}:latest
 
       - name: Push Intermediate Image
