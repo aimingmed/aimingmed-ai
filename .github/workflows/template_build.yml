@@ -36,16 +36,6 @@ on:
       commit_sha:
         required: true
         type: string
-    # Define secrets required by this reusable workflow
-    # These will be provided by the caller using 'secrets: inherit' or explicit mapping
-    secrets:
-      ARTIFACTORY_USER:
-        required: true
-      ARTIFACTORY_PASSWORD:
-        required: true
-      # ARTIFACT_FEED_READ_TOKEN_B64 is needed by the caller to construct 'args',
-      # but not directly used in this template file unless ARGS logic changes.
-      # If needed directly, add it here too.
 
 jobs:
   build-single-image:
