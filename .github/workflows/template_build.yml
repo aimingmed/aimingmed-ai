@@ -89,7 +89,7 @@ jobs:
         continue-on-error: true # Mimics '|| true'
         run: |
           echo "Attempting to pull latest image for cache: ${{ steps.tags.outputs.image_repo_path }}:latest"
-          docker pull ${{ steps.tags.outputs.image_repo_path }}:latest
+          docker pull ${{ steps.tags.outputs.image_repo_path }}:latest || true
 
       - name: Pull Intermediate Image for Cache
         # Pulls the intermediate tag if specified and exists
@@ -97,7 +97,7 @@ jobs:
         continue-on-error: true # Mimics '|| true'
         run: |
           echo "Attempting to pull intermediate image for cache: ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}"
-          docker pull ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}
+          docker pull ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }} || true
 
       - name: Build Intermediate Image
         # Builds the intermediate target if specified
