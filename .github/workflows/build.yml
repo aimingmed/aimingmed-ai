@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - develop
+      - main
 
 env:
   IMAGE: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/aimingmed-ai-backend
