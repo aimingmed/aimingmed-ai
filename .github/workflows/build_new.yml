@@ -42,8 +42,6 @@ jobs:
           - IMAGE_NAME: backend-aimingmedai
             BUILD_CONTEXT: ./app/backend
             DOCKERFILE: ./app/backend/Dockerfile
-            INTERMEDIATE_CONTAINER: builder
-            ARGS: "" # Default empty ARGS
 
     # Call the reusable workflow
     uses: ./.github/workflows/template_build.yml # Path to the reusable workflow file
@@ -55,9 +53,5 @@ jobs:
       image_name: ${{ matrix.image_config.IMAGE_NAME }}
       build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
-      # Provide default empty strings if matrix values might be null/undefined
-      intermediate_container: ${{ matrix.image_config.INTERMEDIATE_CONTAINER || '' }}
-      args: ${{ matrix.image_config.ARGS || '' }}
-      # Pass run-specific context needed for tagging
       build_id: ${{ github.run_id }}
       commit_sha: ${{ github.sha }}
