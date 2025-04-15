@@ -83,47 +83,7 @@ jobs:
           echo "Attempting to pull latest image for cache: ${{ steps.tags.outputs.image_repo_path }}:latest"
           docker pull ${{ steps.tags.outputs.image_repo_path }}:latest || true
 
-      - name: Pull Intermediate Image for Cache
-        # Pulls the intermediate tag if specified and exists
-        if: inputs.intermediate_container != ''
-        continue-on-error: true # Mimics '|| true'
-        run: |
-          echo "Attempting to pull intermediate image for cache: ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}"
-          docker pull ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }} || true
-
-      - name: Build Intermediate Image
-        # Builds the intermediate target if specified
-        if: inputs.intermediate_container != ''
-        run: |
-          echo "Building intermediate image: ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}"
-          docker build \
-            -f ${{ inputs.dockerfile }} \
-            --pull \
-            --cache-from type=registry,ref=${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }} \
-            -t ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }} \
-            --target ${{ inputs.intermediate_container }} \
-            ${{ inputs.args }} \
-            ${{ inputs.build_context }}
-
-      - name: Build Final Image (with Intermediate Cache)
-        # Builds the final image using intermediate cache if specified
-        if: inputs.intermediate_container != ''
-        run: |
-          echo "Building final image with intermediate cache..."
-          docker build \
-            -f ${{ inputs.dockerfile }} \
-            --pull \
-            --cache-from type=registry,ref=${{ steps.tags.outputs.image_repo_path }}:latest \
-            --cache-from type=registry,ref=${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }} \
-            -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }} \
-            -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }} \
-            -t ${{ steps.tags.outputs.image_repo_path }}:latest \
-            ${{ inputs.args }} \
-            ${{ inputs.build_context }}
-
-      - name: Build Final Image (without Intermediate Cache)
-        # Builds the final image without intermediate cache if not specified
-        if: inputs.intermediate_container == ''
+      - name: Build Final Image
         run: |
           echo "Building final image without intermediate cache..."
           docker build \
@@ -140,13 +100,6 @@ jobs:
         # Pushes the final tags (build id, commit sha, latest)
         run: |
           echo "Pushing final image tags..."
-          # docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }}
-          # docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }}
+          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }}
+          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }}
           docker push ${{ steps.tags.outputs.image_repo_path }}:latest
-
-      - name: Push Intermediate Image
-        # Pushes the intermediate tag if it was built
-        if: inputs.intermediate_container != ''
-        run: |
-          echo "Pushing intermediate image tag..."
-          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ inputs.intermediate_container }}
