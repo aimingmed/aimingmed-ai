@@ -44,7 +44,7 @@ jobs:
             DOCKERFILE: ./app/backend/Dockerfile
           - IMAGE_NAME: frontend-aimingmedai
             BUILD_CONTEXT: ./app/frontend
-            DOCKERFILE: ./app/frontend/Dockerfile
+            DOCKERFILE: ./app/frontend/Dockerfile.test
             
     # Call the reusable workflow
     uses: ./.github/workflows/template_build.yml # Path to the reusable workflow file
