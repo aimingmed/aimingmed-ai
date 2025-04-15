@@ -5,9 +5,9 @@ on:
   push:
     branches:
       - development
-    paths:
-      - 'app/**'
-      - '.github/workflows/**'
+    # paths:
+    #   - 'app/**'
+    #   - '.github/workflows/**'
 
 # Concurrency: Equivalent to batch: true
 concurrency:
