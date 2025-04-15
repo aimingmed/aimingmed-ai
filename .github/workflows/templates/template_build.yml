@@ -1,6 +1,3 @@
-# This is a reusable workflow template containing the Docker build logic for one image.
-# It's called by build.yml for each item in the matrix.
-
 name: Reusable Docker Build Template
 
 # Define inputs expected from the calling workflow
