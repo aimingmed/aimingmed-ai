@@ -1,0 +1,18 @@
+####### BUILDER IMAGE #######
+# Build stage
+FROM node:alpine
+
+WORKDIR /usr/src/app
+
+# Copy everything else, test and build
+COPY . /usr/src/app
+
+# Build the app with a specific .env file
+ARG ENV_FILE=.env.test
+COPY ${ENV_FILE} /usr/src/app/.env
+
+# Copy dependency files and install dependencies
+RUN npm install && npm i --save-dev @types/jest
+
+EXPOSE 5173
+CMD [ "npm", "run", "dev" ]

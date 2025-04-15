@@ -25,7 +25,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.local
+      dockerfile: Dockerfile.test
     container_name: frontend
     volumes:
       - ./frontend:/usr/src/app
