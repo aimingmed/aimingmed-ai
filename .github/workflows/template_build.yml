@@ -19,10 +19,6 @@ on:
       build_context:
         required: true
         type: string
-      platform:
-        required: false # Optional input
-        type: string
-        default: 'linux/amd64'
       dockerfile:
         required: true
         type: string
@@ -93,7 +89,7 @@ jobs:
         continue-on-error: true # Mimics '|| true'
         run: |
           echo "Attempting to pull latest image for cache: ${{ steps.tags.outputs.image_repo_path }}:latest"
-          docker pull --platform linux/amd64 ${{ steps.tags.outputs.image_repo_path }}:latest
+          docker pull ${{ steps.tags.outputs.image_repo_path }}:latest
 
       - name: Pull Intermediate Image for Cache
         # Pulls the intermediate tag if specified and exists

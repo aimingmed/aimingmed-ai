@@ -42,7 +42,6 @@ jobs:
           - IMAGE_NAME: backend-aimingmedai
             BUILD_CONTEXT: ./app/backend
             DOCKERFILE: ./app/backend/Dockerfile
-            PLATFORM: linux/amd64
             INTERMEDIATE_CONTAINER: builder
             ARGS: "" # Default empty ARGS
 
@@ -55,7 +54,6 @@ jobs:
       repo: https://github.com/aimingmed
       image_name: ${{ matrix.image_config.IMAGE_NAME }}
       build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
-      platform: ${{ matrix.image_config.PLATFORM }}
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
       # Provide default empty strings if matrix values might be null/undefined
       intermediate_container: ${{ matrix.image_config.INTERMEDIATE_CONTAINER || '' }}
