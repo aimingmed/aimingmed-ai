@@ -80,7 +80,7 @@ jobs:
         # Define tags consistently using inputs
         id: tags
         run: |
-          echo "image_repo_path=${{ inputs.repo }}/${{ inputs.project_name }}/${{ inputs.image_name }}" >> $GITHUB_OUTPUT
+          echo "image_repo_path=ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/${{ inputs.image_name }}" >> $GITHUB_OUTPUT
           echo "tag_build_id=${{ inputs.build_id }}" >> $GITHUB_OUTPUT
           echo "tag_commit_sha=${{ inputs.commit_sha }}" >> $GITHUB_OUTPUT
 
