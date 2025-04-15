@@ -1,4 +1,4 @@
-[![App testing](https://github.com/aimingmed/aimingmed-ai/actions/workflows/app-testing.yml/badge.svg?branch=develop)](https://github.com/aimingmed/aimingmed-ai/actions/workflows/app-testing.yml)
+[![CI/CD - develop](https://github.com/aimingmed/aimingmed-ai/actions/workflows/develop.yml/badge.svg)](https://github.com/aimingmed/aimingmed-ai/actions/workflows/develop.yml)
 
 ## Important note:
 
