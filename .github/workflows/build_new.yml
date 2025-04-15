@@ -50,8 +50,8 @@ jobs:
     # Pass inputs required by the reusable workflow
     with:
       # Pass values from the matrix context and global env
-      project_name: ${{ env.PROJECT_NAME }}
-      repo: ${{ env.REPO }}
+      project_name: aimingmed-ai
+      repo: https://github.com/aimingmed
       image_name: ${{ matrix.image_config.IMAGE_NAME }}
       build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
