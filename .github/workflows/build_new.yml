@@ -1,4 +1,4 @@
-name: Build aimingmed-ai ${{ github.ref_name }}+${{ github.run_id }}
+name: Build
 
 # Triggers: Equivalent to ADO trigger block
 on:
