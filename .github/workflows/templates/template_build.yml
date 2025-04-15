@@ -2,6 +2,9 @@ name: Reusable Docker Build Template
 
 # Define inputs expected from the calling workflow
 on:
+  push:
+    branches:
+      - develop
   workflow_call:
     inputs:
       project_name:
