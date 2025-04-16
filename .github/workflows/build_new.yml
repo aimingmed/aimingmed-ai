@@ -50,7 +50,7 @@ jobs:
     with:
       # Pass values from the matrix context and global env
       project_name: aimingmed-ai
-      image_repo: ghcr.io/${{ github.repository.toLowerCase() }}
+      image_repo: ghcr.io/${{ lower(github.repository) }}
       image_name: ${{ matrix.image_config.IMAGE_NAME }}
       build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
