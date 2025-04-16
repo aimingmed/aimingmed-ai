@@ -2,7 +2,7 @@ name: Build
 
 # Triggers: Equivalent to ADO trigger block
 on:
-  push:
+  pull_request:
     branches:
       - develop
     # paths:
