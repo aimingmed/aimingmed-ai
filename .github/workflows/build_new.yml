@@ -2,14 +2,14 @@ name: Build
 
 # Triggers: Equivalent to ADO trigger block
 on:
-  push:
+  pull_request:
     branches:
       - develop
     # paths:
     #   - 'app/**'
     #   - '.github/workflows/**'
 
-# Concurrency: Equivalent to batch: true
+# Concurrency control: Ensures only one run per branch at a time, Equivalent to batch: true
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,8 +20,8 @@ env:
   REPO: https://github.com/aimingmed # Updated repo for aimingmed-ai
 
 jobs:
-  # This job defines the matrix and calls the reusable workflow for each image
-  call-build-template:
+  # This job defines the matrix and calls the reusable workflow for each image build
+  build:
     name: Build ${{ matrix.image_config.IMAGE_NAME }}
     # Define necessary permissions if needed (e.g., for GitHub Packages)
     permissions:
@@ -58,3 +58,51 @@ jobs:
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
       build_id: ${{ github.run_id }}
       commit_sha: ${{ github.sha }}
+
+  # TEST Stage equivalent
+  test:
+    name: Run Tests
+    needs: build # Ensure this job runs after the build job
+
+    # Call the reusable workflow for testing
+    uses: ./.github/workflows/template_test.yml # Path to the reusable workflow file
+    with:
+      projectName: ${{ env.PROJECT_NAME }}
+      repo: ${{ env.ARTIFACTORY_REPO }}
+      # Pass test environment variables as JSON string
+      testEnvs: >
+        [
+          "FRONTEND_URL=http://frontend:80",
+          "BACKEND_URL=http://backend:80",
+          "ENVIRONMENT=dev",
+          "TESTING=1",
+        ]
+      # Pass test directories as JSON string
+      tests: >
+        [
+          "tests/integration/backend",
+        ]
+      # Pass image definitions for compose setup as JSON string
+      # Sensitive values should be passed via secrets and referenced within the template
+      images: >
+        [
+          {
+            "name": "backend-aimingmedai",
+            "env": {
+              "ENVIRONMENT": "dev",
+              "TESTING": "1",
+              "DEEPSEEK_API_KEY": "${{ secrets.DEEPSEEK_API_KEY }}",
+              "TAVILY_API_KEY": "${{ secrets.TAVILY_API_KEY }}"
+      
+            }
+          },
+          {
+            "name": "frontend-aimingmedai",
+            "depends_on": ["backend-aimingmedai"],
+            "env": {
+              "ENVIRONMENT": "dev",
+              "TESTING": "1",
+              "LOG_LEVEL": "DEBUG"
+            }
+          }
+        ]

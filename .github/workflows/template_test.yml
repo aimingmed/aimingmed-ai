@@ -1,0 +1,207 @@
+name: Reusable Test Workflow
+
+on:
+  workflow_call:
+    inputs:
+      projectName:
+        required: true
+        type: string
+      repo:
+        required: true
+        type: string
+      images: # JSON string defining services for compose
+        required: true
+        type: string
+      tests: # JSON string array of test directories/commands
+        required: true
+        type: string
+      testEnvs: # JSON string array of env vars for the test runner container
+        required: false
+        type: string
+        default: '[]'
+      testComposeFilePath: # Path where the generated compose file will be saved
+        required: false
+        type: string
+        default: ./test_compose.yml # Use .yml extension for docker compose v2
+      testContainerName:
+        required: false
+        type: string
+        default: tests # Name of the image containing the tests
+      testResultsPath: # Path inside the test container where results are stored
+        required: false
+        type: string
+        default: /usr/src/app/results
+      testResultsFilename:
+        required: false
+        type: string
+        default: results.xml
+
+jobs:
+  compose_and_test:
+    name: Compose Services and Run Tests
+    runs-on: ubuntu-latest
+    env:
+      # Env vars needed for compose file generation/execution
+      REPO: ${{ inputs.repo }}
+      PROJECT_NAME: ${{ inputs.projectName }}
+      TAG: ${{ github.run_id }} # Use run_id as the build tag
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: develop 
+          fetch-depth: 1
+
+      - name: Log in to GitHub Packages
+        run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Docker-Compose File from Inputs
+        id: create_compose
+        shell: pwsh
+        run: |
+          # Load Inputs (parse JSON strings)
+          $imagesJson = '${{ inputs.images }}'
+          # Substitute secrets *before* parsing JSON using environment variables
+          # Be very careful with escaping if secrets contain special JSON characters
+
+          Write-Host "Substituted Images JSON: $imagesJson" # Debugging - remove sensitive info if public
+          $images = $imagesJson | ConvertFrom-Json
+
+          $testComposePath = "${{ inputs.testComposeFilePath }}"
+
+          # create compose structure (using YAML structure for Docker Compose v2+)
+          $compose = @{ version = "3.8"; services = @{}; networks = @{} }
+          $compose.networks.test = @{ external = $false; name = "test-network-${{ github.run_id }}" } # Use unique network name per run
+
+          # Generate services Section Based on Images inputs
+          foreach ($img in $images) {
+              $serviceName = $img.name
+              $svc = @{}
+              $svc.image = "${{ env.REPO }}/${{ env.PROJECT_NAME }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
+              if ($img.depends_on) {
+                  $svc.depends_on = $img.depends_on
+              }
+              if ($img.env) {
+                  $svc.environment = $img.env
+              } else {
+                  $svc.environment = @{}
+              }
+              $svc.networks = @("test") # Assign service to the custom network
+
+              $compose.services.$serviceName = $svc
+          }
+
+          # Convert PS object to YAML and write file
+          # Installing powershell-yaml module might be needed on some runners
+          # Install-Module -Name powershell-yaml -Force -Scope CurrentUser # Uncomment if needed
+          # Import-Module powershell-yaml # Uncomment if needed
+          # $compose | ConvertTo-Yaml | Out-File -Encoding utf8 $testComposePath
+
+          # Alternative: Convert to JSON then use a tool to convert JSON to YAML, or just use JSON with compose
+          # Using JSON with docker compose -f is often simpler
+          $compose | ConvertTo-Json -Depth 10 | Out-File -Encoding utf8 $testComposePath.replace('.yml','.json')
+          echo "COMPOSE_FILE_PATH=$($testComposePath.replace('.yml','.json'))" >> $env:GITHUB_OUTPUT
+
+      # Removed 'docker network create test' - using isolated compose network now
+
+      - name: Clean Docker Services (if any previous)
+        run: |
+          docker compose -f ${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }} down -v --remove-orphans || true
+        continue-on-error: true
+
+      - name: Start Docker Compose Services
+        run: |
+          echo "Using compose file: ${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}"
+          cat "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" # Print generated compose file (check secrets aren't exposed if public)
+          docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" up -d
+
+      - name: Wait for Services
+        run: |
+          echo "Waiting 60 seconds for services to initialize..."
+          sleep 60
+          echo "Compose logs after wait:"
+          docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" logs
+
+      - name: Run Tests
+        shell: bash
+        run: |
+          TEST_DIRS='${{ inputs.tests }}' # Get JSON array string
+          TEST_ENVS_JSON='${{ inputs.testEnvs }}' # Get JSON array string
+          RESULTS_PATH="${{ inputs.testResultsPath }}"
+          STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
+          mkdir -p "$STAGING_DIR"
+
+          # Prepare environment variables for docker run
+          ENV_ARGS=""
+          if [[ "$TEST_ENVS_JSON" != "[]" ]]; then
+            while IFS= read -r line; do
+              ENV_ARGS+=" -e \"$line\""
+            done <<< $(echo "$TEST_ENVS_JSON" | jq -r '.[]')
+          else
+            # Add a dummy env var if none are provided, as required by original script logic
+             ENV_ARGS+=" -e DUMMY_ENV_TEST_RUN_ID=${{ github.run_id }}"
+          fi
+          echo "Env args: $ENV_ARGS" # Debugging
+
+          # Get the dynamically generated network name
+          COMPOSE_NETWORK_NAME=$(docker network ls --filter name=test-network-${{ github.run_id }} --format "{{.Name}}")
+          echo "Using Network: $COMPOSE_NETWORK_NAME"
+
+          # Loop through test directories and execute tests
+          echo "$TEST_DIRS" | jq -c '.[]' | while read test_dir; do
+            test_dir=$(echo $test_dir | sed 's/"//g') # Remove quotes
+            echo "Running test: $test_dir"
+            docker run \
+              --network "$COMPOSE_NETWORK_NAME" \
+              $ENV_ARGS \
+              -v "$STAGING_DIR:$RESULTS_PATH" \
+              --rm \
+              "${{ inputs.repo }}/${{ inputs.projectName }}/${{ inputs.testContainerName }}:${{ github.run_id }}" \
+              "$test_dir"
+            # Add error handling if needed (e.g., exit script if a test run fails)
+            if [ $? -ne 0 ]; then
+              echo "Test failed: $test_dir"
+              # exit 1 # Uncomment to stop on first failure
+            fi
+          done
+
+          # Copy results file to expected location for upload artifact (adjust filename if needed)
+          # Assuming all test runs output to the *same* results file, overwriting previous ones.
+          # If they output to different files, adjust this copy/rename logic.
+          if [[ -f "$STAGING_DIR/${{ inputs.testResultsFilename }}" ]]; then
+            cp "$STAGING_DIR/${{ inputs.testResultsFilename }}" "${{ runner.temp }}/${{ inputs.testResultsFilename }}"
+          else
+            echo "Warning: Test results file ${{ inputs.testResultsFilename }} not found in $STAGING_DIR"
+          fi
+
+      - name: Upload Test Results Artifact
+        if: always() # Run even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: ${{ runner.temp }}/${{ inputs.testResultsFilename }} # Path to the results file on the runner
+          retention-days: 7
+
+      # Optional: Publish Test Results for UI display
+      - name: Publish Test Results
+        if: always() # Run even if tests fail
+        uses: dorny/test-reporter@v1
+        with:
+          name: JUnit Test Report
+          path: ${{ runner.temp }}/${{ inputs.testResultsFilename }} # Path to the JUnit XML file
+          reporter: java-junit # Specify the format
+
+      - name: Print Service Logs on Failure or Success
+        if: always() # Always run this step
+        run: |
+          echo "Printing final logs from Docker Compose services..."
+          docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" logs
+
+      - name: Docker Compose Down
+        if: always() # Always run cleanup
+        run: |
+          echo "Bringing down Docker Compose services..."
+          docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" down -v --remove-orphans

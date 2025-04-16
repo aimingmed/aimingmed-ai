@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const BASE_DOMAIN_NAME = import.meta.env.REACT_APP_DOMAIN_NAME || 'localhost';
+const BASE_DOMAIN_NAME_PORT = import.meta.env.REACT_APP_DOMAIN_NAME_PORT || 'localhost:8004';
 
 
 interface Message {
@@ -16,7 +16,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     mounted.current = true;
-    const ws = new WebSocket(`ws://${BASE_DOMAIN_NAME}:8000/ws`);
+    const ws = new WebSocket(`ws://${BASE_DOMAIN_NAME_PORT}/ws`);
     setSocket(ws);
     ws.onopen = () => {
       console.log('WebSocket connection opened');
