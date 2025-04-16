@@ -71,6 +71,12 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
+      - name: Define Image Repo tags
+        # Define tags consistently using inputs
+        id: tags
+        run: |
+          echo "image_repo_path=${{ inputs.image_repo }}" >> $GITHUB_OUTPUT
+
       - name: Create Docker-Compose File from Inputs
         id: create_compose
         shell: pwsh
@@ -97,7 +103,7 @@ jobs:
           foreach ($img in $images) {
               $serviceName = $img.name
               $svc = @{}
-              $svc.image = "$env:IMAGE_REPO/$($serviceName):${{ env.TAG }}" # Use run_id tag
+              $svc.image = "${{ steps.tags.outputs.image_repo_path }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
 
               if ($img.depends_on) {
                   $svc.depends_on = $img.depends_on
@@ -177,7 +183,7 @@ jobs:
               $ENV_ARGS \
               -v "$STAGING_DIR:$RESULTS_PATH" \
               --rm \
-              "${{ env.IMAGE_REPO }}/${{ inputs.testContainerName }}:${{ github.run_id }}" \
+              "${{ steps.tags.outputs.image_repo_path }}/${{ inputs.testContainerName }}:${{ github.run_id }}" \
               "$test_dir"
             # Add error handling if needed (e.g., exit script if a test run fails)
             if [ $? -ne 0 ]; then
