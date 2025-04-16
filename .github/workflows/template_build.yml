@@ -10,7 +10,7 @@ on:
       project_name:
         required: true
         type: string
-      repo:
+      image_repo:
         required: true
         type: string
       image_name:
@@ -28,11 +28,7 @@ on:
       commit_sha:
         required: true
         type: string
-    secrets:
-      DEEPSEEK_API_KEY:
-        required: true
-      TAVILY_API_KEY:
-        required: true
+
 jobs:
   build-single-image:
     # This job executes the build steps for the specific image configuration passed via inputs
@@ -76,7 +72,7 @@ jobs:
         # Define tags consistently using inputs
         id: tags
         run: |
-          echo "image_repo_path=ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/${{ inputs.image_name }}" >> $GITHUB_OUTPUT
+          echo "image_repo_path=${{ inputs.image_repo }}/${{ inputs.image_name }}" >> $GITHUB_OUTPUT
           echo "tag_build_id=${{ inputs.build_id }}" >> $GITHUB_OUTPUT
           echo "tag_commit_sha=${{ inputs.commit_sha }}" >> $GITHUB_OUTPUT
 
