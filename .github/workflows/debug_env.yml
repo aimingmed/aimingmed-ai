@@ -1,0 +1,12 @@
+name: Debug Environment
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print GITHUB_REPOSITORY
+        run: |
+          echo "GITHUB_REPOSITORY: ${{ github.repository }}"
