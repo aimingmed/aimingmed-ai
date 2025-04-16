@@ -91,8 +91,8 @@ jobs:
             "env": {
               "ENVIRONMENT": "dev",
               "TESTING": "1",
-              "DEEPSEEK_API_KEY": "${{ secrets.DEEPSEEK_API_KEY }}",
-              "TAVILY_API_KEY": "${{ secrets.TAVILY_API_KEY }}"
+              "DEEPSEEK_API_KEY": "",
+              "TAVILY_API_KEY": ""
       
             }
           },
