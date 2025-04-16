@@ -61,7 +61,10 @@ jobs:
   test:
     name: Run Tests
     needs: build # Ensure this job runs after the build job
-
+    # Define necessary permissions if needed (e.g., for GitHub Packages)
+    permissions:
+      contents: read
+      packages: write # If pushing to GitHub Packages registry
     # Call the reusable workflow for testing
     uses: ./.github/workflows/template_test.yml # Path to the reusable workflow file
     with:
