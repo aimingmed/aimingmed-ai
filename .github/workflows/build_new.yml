@@ -69,7 +69,7 @@ jobs:
     uses: ./.github/workflows/template_test.yml # Path to the reusable workflow file
     with:
       projectName: aimingmed-ai
-      image_repo: ghcr.io/${{ github.repository.toLowerCase() }}
+      image_repo: ghcr.io/${{ lower(github.repository) }}
       # Pass test environment variables as JSON string
       testEnvs: >
         [
