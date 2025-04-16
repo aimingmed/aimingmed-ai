@@ -78,7 +78,7 @@ jobs:
           $testComposePath = "${{ inputs.testComposeFilePath }}"
 
           # create compose structure (using YAML structure for Docker Compose v2+)
-          $compose = @{ version = "3.8"; services = @{}; networks = @{} }
+          $compose = @{ services = @{}; networks = @{} }
           $compose.networks.test = @{ external = $false; name = "test-network-${{ github.run_id }}" } # Use unique network name per run
 
           # Generate services Section Based on Images inputs
@@ -165,7 +165,7 @@ jobs:
               $ENV_ARGS \
               -v "$STAGING_DIR:$RESULTS_PATH" \
               --rm \
-              "${{ env.IMAGE_REPO }}/$($serviceName)/${{ inputs.testContainerName }}:${{ github.run_id }}" \
+              "${{ env.IMAGE_REPO }}/${{ inputs.testContainerName }}:${{ github.run_id }}" \
               "$test_dir"
             # Add error handling if needed (e.g., exit script if a test run fails)
             if [ $? -ne 0 ]; then
