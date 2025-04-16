@@ -72,7 +72,7 @@ jobs:
         run: echo "image_repo=ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr '[A-Z]' '[a-z]')" >> $GITHUB_OUTPUT
         shell: bash
       # Call the reusable workflow for testing
-      - uses: ./.github/workflows/template_test.yml # Path to the reusable workflow file
+      - uses: .github/workflows/template_test.yml # Path to the reusable workflow file
         with:
           projectName: aimingmed-ai
           image_repo: ${{ steps.set_image_repo.outputs.image_repo }}
