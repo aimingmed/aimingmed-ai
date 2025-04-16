@@ -14,11 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Global environment variables accessible in the calling job
-env:
-  PROJECT_NAME: aimingmed-ai
-  REPO: https://github.com/aimingmed # Updated repo for aimingmed-ai
-
 jobs:
   # This job defines the matrix and calls the reusable workflow for each image build
   build:
@@ -45,6 +40,9 @@ jobs:
           - IMAGE_NAME: frontend-aimingmedai
             BUILD_CONTEXT: ./app/frontend
             DOCKERFILE: ./app/frontend/Dockerfile.test
+          - IMAGE_NAME: tests-aimingmedai
+            BUILD_CONTEXT: ./app/tests
+            DOCKERFILE: ./app/tests/Dockerfile
             
     # Call the reusable workflow
     uses: ./.github/workflows/template_build.yml # Path to the reusable workflow file
@@ -52,7 +50,7 @@ jobs:
     with:
       # Pass values from the matrix context and global env
       project_name: aimingmed-ai
-      repo: https://github.com/aimingmed
+      image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/
       image_name: ${{ matrix.image_config.IMAGE_NAME }}
       build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
@@ -68,7 +66,7 @@ jobs:
     uses: ./.github/workflows/template_test.yml # Path to the reusable workflow file
     with:
       projectName: aimingmed-ai
-      repo: https://github.com/aimingmed
+      image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/
       # Pass test environment variables as JSON string
       testEnvs: >
         [

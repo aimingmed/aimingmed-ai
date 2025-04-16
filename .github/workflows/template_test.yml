@@ -6,7 +6,7 @@ on:
       projectName:
         required: true
         type: string
-      repo:
+      image_repo:
         required: true
         type: string
       images: # JSON string defining services for compose
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Env vars needed for compose file generation/execution
-      REPO: ${{ inputs.repo }}
+      IMAGE_REPO: ${{ inputs.image_repo }}
       PROJECT_NAME: ${{ inputs.projectName }}
       TAG: ${{ github.run_id }} # Use run_id as the build tag
 
@@ -85,7 +85,8 @@ jobs:
           foreach ($img in $images) {
               $serviceName = $img.name
               $svc = @{}
-              $svc.image = "${{ env.REPO }}/${{ env.PROJECT_NAME }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
+              $svc.image = "${{ env.IMAGE_REPO }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
+
               if ($img.depends_on) {
                   $svc.depends_on = $img.depends_on
               }
@@ -164,7 +165,7 @@ jobs:
               $ENV_ARGS \
               -v "$STAGING_DIR:$RESULTS_PATH" \
               --rm \
-              "${{ inputs.repo }}/${{ inputs.projectName }}/${{ inputs.testContainerName }}:${{ github.run_id }}" \
+              "${{ env.IMAGE_REPO }}/$($serviceName)/${{ inputs.testContainerName }}:${{ github.run_id }}" \
               "$test_dir"
             # Add error handling if needed (e.g., exit script if a test run fails)
             if [ $? -ne 0 ]; then
