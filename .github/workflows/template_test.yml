@@ -76,9 +76,6 @@ jobs:
         id: tags
         run: |
           echo "image_repo_path=${{ inputs.image_repo }}" >> $GITHUB_OUTPUT
-          echo "TEST_DIRS_TAG=${{ inputs.tests }}" >> $GITHUB_OUTPUT
-          echo "TEST_ENVS_TAG=${{ inputs.testEnvs }}" >> $GITHUB_OUTPUT
-          
 
       - name: Create Docker-Compose File from Inputs
         id: create_compose
@@ -155,8 +152,8 @@ jobs:
       - name: Run Tests
         shell: bash
         run: |
-          TEST_DIRS="${{ steps.tags.outputs.TEST_DIRS_TAG }}" # Get JSON array string
-          TEST_ENVS_JSON="${{ steps.tags.outputs.TEST_ENVS_TAG }}" # Get JSON array string
+          TEST_DIRS="${{ inputs.tests }}"
+          TEST_ENVS_JSON="${{ inputs.testEnvs }}" # Get JSON array string
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
