@@ -28,7 +28,11 @@ on:
       commit_sha:
         required: true
         type: string
-
+    secrets:
+      DEEPSEEK_API_KEY:
+        required: true
+      TAVILY_API_KEY:
+        required: true
 jobs:
   build-single-image:
     # This job executes the build steps for the specific image configuration passed via inputs

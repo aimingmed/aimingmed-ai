@@ -34,7 +34,7 @@ RUN chown -R app:app $APP_HOME
 USER app
 
 # expose the port the app runs on
-EXPOSE 8765
+EXPOSE 80
 
 # run uvicorn
-CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "8765"]
+CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "80"]
