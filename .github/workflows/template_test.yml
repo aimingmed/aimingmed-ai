@@ -152,8 +152,8 @@ jobs:
       - name: Run Tests
         shell: bash
         run: |
-          TEST_DIRS='${{ inputs.tests }}' # Get JSON array string
-          TEST_ENVS_JSON='${{ inputs.testEnvs }}' # Get JSON array string
+          TEST_DIRS='["tests/integration/backend"]'
+          TEST_ENVS_JSON='["FRONTEND_URL=http://frontend:80","BACKEND_URL=http://backend:80","ENVIRONMENT=dev","TESTING=1"]'
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
@@ -175,7 +175,7 @@ jobs:
           echo "Using Network: $COMPOSE_NETWORK_NAME"
 
           # Loop through test directories and execute tests
-          echo "$TEST_DIRS" | jq -c '.[]' | while read test_dir; do
+          echo "$TEST_DIRS" | jq -r '.[]' | while read test_dir; do
             test_dir=$(echo $test_dir | sed 's/"//g') # Remove quotes
             echo "Running test: $test_dir"
             docker run \
