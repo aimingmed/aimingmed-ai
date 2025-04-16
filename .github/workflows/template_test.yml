@@ -97,7 +97,7 @@ jobs:
           foreach ($img in $images) {
               $serviceName = $img.name
               $svc = @{}
-              $svc.image = "${{ env.IMAGE_REPO }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
+              $svc.image = "$env:IMAGE_REPO/$($serviceName):${{ env.TAG }}" # Use run_id tag
 
               if ($img.depends_on) {
                   $svc.depends_on = $img.depends_on
