@@ -50,7 +50,7 @@ jobs:
     with:
       # Pass values from the matrix context and global env
       project_name: aimingmed-ai
-      image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/
+      image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')
       image_name: ${{ matrix.image_config.IMAGE_NAME }}
       build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
@@ -66,7 +66,7 @@ jobs:
     uses: ./.github/workflows/template_test.yml # Path to the reusable workflow file
     with:
       projectName: aimingmed-ai
-      image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/
+      image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')
       # Pass test environment variables as JSON string
       testEnvs: >
         [
