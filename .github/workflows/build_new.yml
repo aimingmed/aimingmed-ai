@@ -34,9 +34,9 @@ jobs:
         # We wrap the image configuration in a single 'image_config' key
         # to pass it more easily if needed, but primarily access sub-keys directly.
         image_config:
-          # - IMAGE_NAME: backend-aimingmedai
-          #   BUILD_CONTEXT: ./app/backend
-          #   DOCKERFILE: ./app/backend/Dockerfile
+          - IMAGE_NAME: backend-aimingmedai
+            BUILD_CONTEXT: ./app/backend
+            DOCKERFILE: ./app/backend/Dockerfile
           - IMAGE_NAME: frontend-aimingmedai
             BUILD_CONTEXT: ./app/frontend
             DOCKERFILE: ./app/frontend/Dockerfile.test
