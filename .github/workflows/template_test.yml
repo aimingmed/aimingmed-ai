@@ -76,6 +76,8 @@ jobs:
         id: tags
         run: |
           echo "image_repo_path=${{ inputs.image_repo }}" >> $GITHUB_OUTPUT
+          echo "DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}" >> $GITHUB_OUTPUT
+          echo "TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}" >> $GITHUB_OUTPUT
 
       - name: Create Docker-Compose File from Inputs
         id: create_compose
@@ -83,8 +85,8 @@ jobs:
         run: |
           # Load Inputs (parse JSON strings)
           $imagesJson = '${{ inputs.images }}'
-          $deepseekApiKey = '${{ secrets.DEEPSEEK_API_KEY }}'
-          $tavilyApiKey = '${{ secrets.TAVILY_API_KEY }}'
+          $deepseekApiKey = "${{ steps.tags.outputs.DEEPSEEK_API_KEY }}"
+          $tavilyApiKey = "${{ steps.tags.outputs.TAVILY_API_KEY }}"
           # Substitute secrets *before* parsing JSON using environment variables
           # Be very careful with escaping if secrets contain special JSON characters
           $imagesJson = $imagesJson -replace '"DEEPSEEK_API_KEY": ""', "`"DEEPSEEK_API_KEY`": `"$deepseekApiKey`""
