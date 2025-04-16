@@ -93,8 +93,8 @@ jobs:
             "env": {
               "ENVIRONMENT": "dev",
               "TESTING": "1",
-              "DEEPSEEK_API_KEY": "",
-              "TAVILY_API_KEY": ""
+              "DEEPSEEK_API_KEY": "sk-XXXXXXXXXX",
+              "TAVILY_API_KEY": "tvly-dev-wXXXXXX"
       
             }
           },

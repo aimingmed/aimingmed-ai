@@ -76,8 +76,6 @@ jobs:
         id: tags
         run: |
           echo "image_repo_path=${{ inputs.image_repo }}" >> $GITHUB_OUTPUT
-          echo "DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}" >> $GITHUB_OUTPUT
-          echo "TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }}" >> $GITHUB_OUTPUT
 
       - name: Create Docker-Compose File from Inputs
         id: create_compose
@@ -85,12 +83,6 @@ jobs:
         run: |
           # Load Inputs (parse JSON strings)
           $imagesJson = '${{ inputs.images }}'
-          $deepseekApiKey = "${{ steps.tags.outputs.DEEPSEEK_API_KEY }}"
-          $tavilyApiKey = "${{ steps.tags.outputs.TAVILY_API_KEY }}"
-          # Substitute secrets *before* parsing JSON using environment variables
-          # Be very careful with escaping if secrets contain special JSON characters
-          $imagesJson = $imagesJson -replace '"DEEPSEEK_API_KEY": ""', "`"DEEPSEEK_API_KEY`": `"$deepseekApiKey`""
-          $imagesJson = $imagesJson -replace '"TAVILY_API_KEY": ""', "`"TAVILY_API_KEY`": `"$tavilyApiKey`""
 
           Write-Host "Substituted Images JSON: $imagesJson" # Debugging - remove sensitive info if public
           $images = $imagesJson | ConvertFrom-Json
@@ -155,7 +147,7 @@ jobs:
         shell: bash
         run: |
           TEST_DIRS="${{ inputs.tests }}"
-          TEST_ENVS_JSON="${{ inputs.testEnvs }}" # Get JSON array string
+          TEST_ENVS_JSON="${{ inputs.testEnvs }}"
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
