@@ -95,10 +95,9 @@ jobs:
 
           # Generate services Section Based on Images inputs
           foreach ($img in $images) {
-            $serviceName = $img.name
-            $svc = @{}
-            $svc.container_name = $serviceName
-            $svc.image = "${{ steps.tags.outputs.image_repo_path }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
+              $serviceName = $img.name
+              $svc = @{}
+              $svc.image = "${{ steps.tags.outputs.image_repo_path }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
 
               if ($img.depends_on) {
                   $svc.depends_on = $img.depends_on
@@ -147,8 +146,8 @@ jobs:
       - name: Run Tests
         shell: bash
         run: |
-          TEST_DIRS=${{ inputs.tests }} # JSON string of test directories/commands
-          TEST_ENVS_JSON=${{ inputs.testEnvs }} # JSON string of environment variables
+          TEST_DIRS='["tests/integration/backend"]'
+          TEST_ENVS_JSON='["FRONTEND_URL=http://frontend:80","BACKEND_URL=http://backend:80","ENVIRONMENT=dev","TESTING=1"]'
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
