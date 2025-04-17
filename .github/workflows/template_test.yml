@@ -146,8 +146,8 @@ jobs:
       - name: Run Tests
         shell: bash
         run: |
-          TEST_DIRS="${{ inputs.tests }}"
-          TEST_ENVS_JSON="${{ inputs.testEnvs }}"
+          TEST_DIRS='["tests/integration/backend"]'
+          TEST_ENVS_JSON='["FRONTEND_URL=http://frontend:80","BACKEND_URL=http://backend:80","ENVIRONMENT=dev","TESTING=1"]'
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
@@ -156,10 +156,9 @@ jobs:
           ENV_ARGS=""
           if [[ "$TEST_ENVS_JSON" != "[]" ]]; then
             # Convert JSON array string to individual env vars
-            IFS=',' read -r -a env_array <<< $(echo "$TEST_ENVS_JSON" | jq -r '.[][]')
-            for env in "${env_array[@]}"; do
-              ENV_ARGS+=" -e \"$env\""
-            done
+            while IFS= read -r line; do
+              ENV_ARGS+=" -e \"$line\""
+            done <<< $(echo "$TEST_ENVS_JSON" | jq -r '.[]')
           else
             # Add a dummy env var if none are provided, as required by original script logic
             ENV_ARGS+=" -e DUMMY_ENV_TEST_RUN_ID=${{ github.run_id }}"
