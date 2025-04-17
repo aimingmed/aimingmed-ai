@@ -144,6 +144,18 @@ jobs:
           echo "Compose logs after wait:"
           docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" logs
 
+      - name: Check Docker Services Health
+        run: |
+          echo "Checking health of Docker services..."
+          # Check if all services are healthy
+          docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" ps --filter "status=running" --filter "health=healthy" | grep -q 'healthy'
+          if [ $? -ne 0 ]; then
+            echo "Error: One or more services are not healthy."
+            exit 1
+          fi
+          echo "All services are healthy."
+          docker compose ps
+
       - name: Run Tests
         shell: bash
         run: |
