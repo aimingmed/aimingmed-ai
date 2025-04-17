@@ -37,6 +37,7 @@ jobs:
           - IMAGE_NAME: backend-aimingmedai
             BUILD_CONTEXT: ./app/backend
             DOCKERFILE: ./app/backend/Dockerfile.prod
+            ARGS: "--build-arg ENVIRONMENT=dev --build-arg TESTING=1 --build-arg DEEPSEEK_API_KEY=sk-XXXXXXXXXX --build-arg TAVILY_API_KEY=tvly-dev-wXXXXXX"
           - IMAGE_NAME: frontend-aimingmedai
             BUILD_CONTEXT: ./app/frontend
             DOCKERFILE: ./app/frontend/Dockerfile.test
@@ -54,6 +55,7 @@ jobs:
       image_name: ${{ matrix.image_config.IMAGE_NAME }}
       build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
+      args: ${{ matrix.image_config.ARGS }}
       build_id: ${{ github.run_id }}
       commit_sha: ${{ github.sha }}
 

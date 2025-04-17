@@ -25,6 +25,10 @@ on:
       commit_sha:
         required: true
         type: string
+      args:
+        required: false
+        type: string
+      
 
 jobs:
   build-single-image:
