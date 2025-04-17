@@ -156,9 +156,10 @@ jobs:
           ENV_ARGS=""
           if [[ "$TEST_ENVS_JSON" != "[]" ]]; then
             # Convert JSON array string to individual env vars
-            while IFS= read -r line; do
-              ENV_ARGS+=" -e \"$line\""
-            done <<< $(echo "$TEST_ENVS_JSON" | jq -r '.[]')
+            IFS=',' read -r -a env_array <<< $(echo "$TEST_ENVS_JSON" | jq -r '.[][]')
+            for env in "${env_array[@]}"; do
+              ENV_ARGS+=" -e \"$env\""
+            done
           else
             # Add a dummy env var if none are provided, as required by original script logic
             ENV_ARGS+=" -e DUMMY_ENV_TEST_RUN_ID=${{ github.run_id }}"
