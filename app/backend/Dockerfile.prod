@@ -13,6 +13,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=dev
 ENV TESTING=1
+ENV DEEPSEEK_API_KEY=sk-XXXXXXXXXX
+ENV TAVILY_API_KEY=tvly-dev-wXXXXXX
 
 # install python dependencies
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip

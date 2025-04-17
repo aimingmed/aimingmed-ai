@@ -25,10 +25,7 @@ on:
       commit_sha:
         required: true
         type: string
-      args:
-        required: false
-        type: string
-      
+
 
 jobs:
   build-single-image:
@@ -94,7 +91,6 @@ jobs:
             -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }} \
             -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }} \
             -t ${{ steps.tags.outputs.image_repo_path }}:latest \
-            ${{ inputs.args }} \
             ${{ inputs.build_context }}
 
       - name: Push Final Image Tags
