@@ -92,6 +92,7 @@ jobs:
         [
           {
             "name": "backend-aimingmedai",
+            "ports" : ["8004:80"],
             "env": {
               "ENVIRONMENT": "dev",
               "TESTING": "1",
@@ -102,6 +103,7 @@ jobs:
           },
           {
             "name": "frontend-aimingmedai",
+            "ports" : ["3004:80"],
             "depends_on": ["backend-aimingmedai"],
             "env": {
               "ENVIRONMENT": "dev",
