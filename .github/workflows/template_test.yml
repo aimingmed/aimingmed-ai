@@ -97,6 +97,7 @@ jobs:
           foreach ($img in $images) {
               $serviceName = $img.name
               $svc = @{}
+              $svc.container_name = $serviceName
               $svc.image = "${{ steps.tags.outputs.image_repo_path }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
 
               if ($img.depends_on) {
