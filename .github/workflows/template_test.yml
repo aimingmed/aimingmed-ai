@@ -147,8 +147,8 @@ jobs:
       - name: Run Tests
         shell: bash
         run: |
-          TEST_DIRS='${ inputs.tests }' # JSON string of test directories/commands
-          TEST_ENVS_JSON='${ inputs.testEnvs }' # JSON string of environment variables
+          TEST_DIRS=${ inputs.tests } # JSON string of test directories/commands
+          TEST_ENVS_JSON=${ inputs.testEnvs } # JSON string of environment variables
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
