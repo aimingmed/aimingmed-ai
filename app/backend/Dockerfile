@@ -44,7 +44,6 @@ RUN pipenv install --deploy --dev
 RUN pipenv run pytest tests --disable-warnings
 
 
-
 # BUILD
 FROM base AS builder
 

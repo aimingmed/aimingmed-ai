@@ -146,8 +146,8 @@ jobs:
       - name: Run Tests
         shell: bash
         run: |
-          TEST_DIRS="${{ inputs.tests }}"
-          TEST_ENVS_JSON="${{ inputs.testEnvs }}"
+          TEST_DIRS='["tests/integration/backend"]'
+          TEST_ENVS_JSON='["FRONTEND_URL=http://frontend:80","BACKEND_URL=http://backend:80","ENVIRONMENT=dev","TESTING=1"]'
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
