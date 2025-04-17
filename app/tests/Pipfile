@@ -11,6 +11,9 @@ evonik-dummy = "*"
 pyrsistent = "*"
 pyjwt = "*"
 pydantic = "*"
+websockets = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
 
 [dev-packages]
 autopep8 = "*"

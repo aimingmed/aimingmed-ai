@@ -36,7 +36,7 @@ jobs:
         image_config:
           - IMAGE_NAME: backend-aimingmedai
             BUILD_CONTEXT: ./app/backend
-            DOCKERFILE: ./app/backend/Dockerfile
+            DOCKERFILE: ./app/backend/Dockerfile.prod
           - IMAGE_NAME: frontend-aimingmedai
             BUILD_CONTEXT: ./app/frontend
             DOCKERFILE: ./app/frontend/Dockerfile.test
