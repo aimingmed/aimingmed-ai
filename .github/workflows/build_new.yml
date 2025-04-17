@@ -50,7 +50,7 @@ jobs:
     with:
       # Pass values from the matrix context and global env
       project_name: aimingmed-ai
-      image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')
+      image_repo: "ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')"
       image_name: ${{ matrix.image_config.IMAGE_NAME }}
       build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
       dockerfile: ${{ matrix.image_config.DOCKERFILE }}
@@ -70,6 +70,7 @@ jobs:
     with:
       projectName: aimingmed-ai
       image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')
+      testContainerName: tests-aimingmedai
       # Pass test environment variables as JSON string
       testEnvs: >
         [
@@ -92,8 +93,8 @@ jobs:
             "env": {
               "ENVIRONMENT": "dev",
               "TESTING": "1",
-              "DEEPSEEK_API_KEY": "",
-              "TAVILY_API_KEY": ""
+              "DEEPSEEK_API_KEY": "sk-XXXXXXXXXX",
+              "TAVILY_API_KEY": "tvly-dev-wXXXXXX"
       
             }
           },

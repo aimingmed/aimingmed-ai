@@ -71,18 +71,18 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
+      - name: Define Image Repo and other tags
+        # Define tags consistently using inputs
+        id: tags
+        run: |
+          echo "image_repo_path=${{ inputs.image_repo }}" >> $GITHUB_OUTPUT
+
       - name: Create Docker-Compose File from Inputs
         id: create_compose
         shell: pwsh
         run: |
           # Load Inputs (parse JSON strings)
           $imagesJson = '${{ inputs.images }}'
-          $deepseekApiKey = '${{ secrets.DEEPSEEK_API_KEY }}'
-          $tavilyApiKey = '${{ secrets.TAVILY_API_KEY }}'
-          # Substitute secrets *before* parsing JSON using environment variables
-          # Be very careful with escaping if secrets contain special JSON characters
-          $imagesJson = $imagesJson -replace '"DEEPSEEK_API_KEY": ""', "`"DEEPSEEK_API_KEY`": `"$deepseekApiKey`""
-          $imagesJson = $imagesJson -replace '"TAVILY_API_KEY": ""', "`"TAVILY_API_KEY`": `"$tavilyApiKey`""
 
           Write-Host "Substituted Images JSON: $imagesJson" # Debugging - remove sensitive info if public
           $images = $imagesJson | ConvertFrom-Json
@@ -97,7 +97,7 @@ jobs:
           foreach ($img in $images) {
               $serviceName = $img.name
               $svc = @{}
-              $svc.image = "${{ env.IMAGE_REPO }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
+              $svc.image = "${{ steps.tags.outputs.image_repo_path }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
 
               if ($img.depends_on) {
                   $svc.depends_on = $img.depends_on
@@ -146,8 +146,8 @@ jobs:
       - name: Run Tests
         shell: bash
         run: |
-          TEST_DIRS='${{ inputs.tests }}' # Get JSON array string
-          TEST_ENVS_JSON='${{ inputs.testEnvs }}' # Get JSON array string
+          TEST_DIRS="${{ inputs.tests }}"
+          TEST_ENVS_JSON="${{ inputs.testEnvs }}"
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
@@ -155,12 +155,14 @@ jobs:
           # Prepare environment variables for docker run
           ENV_ARGS=""
           if [[ "$TEST_ENVS_JSON" != "[]" ]]; then
-            while IFS= read -r line; do
-              ENV_ARGS+=" -e \"$line\""
-            done <<< $(echo "$TEST_ENVS_JSON" | jq -r '.[]')
+            # Convert JSON array string to individual env vars
+            IFS=',' read -r -a env_array <<< $(echo "$TEST_ENVS_JSON" | jq -r '.[][]')
+            for env in "${env_array[@]}"; do
+              ENV_ARGS+=" -e \"$env\""
+            done
           else
             # Add a dummy env var if none are provided, as required by original script logic
-             ENV_ARGS+=" -e DUMMY_ENV_TEST_RUN_ID=${{ github.run_id }}"
+            ENV_ARGS+=" -e DUMMY_ENV_TEST_RUN_ID=${{ github.run_id }}"
           fi
           echo "Env args: $ENV_ARGS" # Debugging
 
@@ -169,7 +171,7 @@ jobs:
           echo "Using Network: $COMPOSE_NETWORK_NAME"
 
           # Loop through test directories and execute tests
-          echo "$TEST_DIRS" | jq -c '.[]' | while read test_dir; do
+          echo "$TEST_DIRS" | jq -r '.[]' | while read test_dir; do
             test_dir=$(echo $test_dir | sed 's/"//g') # Remove quotes
             echo "Running test: $test_dir"
             docker run \
@@ -177,7 +179,7 @@ jobs:
               $ENV_ARGS \
               -v "$STAGING_DIR:$RESULTS_PATH" \
               --rm \
-              "${{ env.IMAGE_REPO }}/${{ inputs.testContainerName }}:${{ github.run_id }}" \
+              "${{ steps.tags.outputs.image_repo_path }}/${{ inputs.testContainerName }}:${{ github.run_id }}" \
               "$test_dir"
             # Add error handling if needed (e.g., exit script if a test run fails)
             if [ $? -ne 0 ]; then
