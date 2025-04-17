@@ -73,17 +73,17 @@ jobs:
       testContainerName: tests-aimingmedai
       # Pass test environment variables as JSON string
       testEnvs: >
-        '[
+        [
           "FRONTEND_URL=http://frontend:80",
           "BACKEND_URL=http://backend:80",
           "ENVIRONMENT=dev",
           "TESTING=1",
-        ]'
+        ]
       # Pass test directories as JSON string
       tests: >
-        '[
+        [
           "tests/integration/backend",
-        ]'
+        ]
       # Pass image definitions for compose setup as JSON string
       # Sensitive values should be passed via secrets and referenced within the template
       images: >
