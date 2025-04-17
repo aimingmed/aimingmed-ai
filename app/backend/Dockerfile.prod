@@ -23,7 +23,8 @@ RUN pipenv install --deploy --dev
 
 # add app
 COPY . /usr/src/app
-RUN pipenv run pytest tests --disable-warnings
+RUN export DEEPSEEK_API_KEY=sk-XXXXXXXXXX; export TAVILY_API_KEY=tvly-dev-wXXXXXX;\
+    pipenv run pytest tests --disable-warnings
 RUN pipenv run flake8 .
 RUN pipenv run black --exclude=migrations . --check
 RUN pipenv run isort . --check-only
