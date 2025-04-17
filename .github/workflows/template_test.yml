@@ -154,7 +154,6 @@ jobs:
             exit 1
           fi
           echo "All services are healthy."
-          docker compose ps
 
       - name: Run Tests
         shell: bash
