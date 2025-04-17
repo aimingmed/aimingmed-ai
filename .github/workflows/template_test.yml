@@ -95,9 +95,10 @@ jobs:
 
           # Generate services Section Based on Images inputs
           foreach ($img in $images) {
-              $serviceName = $img.name
-              $svc = @{}
-              $svc.image = "${{ steps.tags.outputs.image_repo_path }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
+            $serviceName = $img.name
+            $svc = @{}
+            $svc.container_name = $serviceName
+            $svc.image = "${{ steps.tags.outputs.image_repo_path }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
 
               if ($img.depends_on) {
                   $svc.depends_on = $img.depends_on
