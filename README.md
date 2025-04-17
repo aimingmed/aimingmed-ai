@@ -1,4 +1,4 @@
-[![Build](https://github.com/aimingmed/aimingmed-ai/actions/workflows/build_new.yml/badge.svg)](https://github.com/aimingmed/aimingmed-ai/actions/workflows/build_new.yml)
+[![Build + CI](https://github.com/aimingmed/aimingmed-ai/actions/workflows/build.yml/badge.svg)](https://github.com/aimingmed/aimingmed-ai/actions/workflows/build.yml)
 
 ## Important note:
 
