@@ -1,4 +1,4 @@
-name: Build
+name: Build + CI
 
 # Triggers: Equivalent to ADO trigger block
 on:
