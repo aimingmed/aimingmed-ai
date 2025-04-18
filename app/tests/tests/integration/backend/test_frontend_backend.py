@@ -1,17 +1,12 @@
 import pytest
-import subprocess
-import requests
 import json
-import time
-import os
-import asyncio
 import websockets
 
 
 @pytest.mark.asyncio
 async def test_chatbot_integration():
     # Send a request to the chatbot endpoint
-    url = "ws://backend-aimingmedai:80/ws"
+    url = "ws://localhost:8004/ws"
     data = [{"content": "Hello"}]
     try:
         async with websockets.connect(url) as websocket:

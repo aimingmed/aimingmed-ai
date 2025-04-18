@@ -71,6 +71,7 @@ jobs:
       projectName: aimingmed-ai
       image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')
       testContainerName: tests-aimingmedai
+      # Todos: This part is not working the testEnvs is not being taken up corrrectly by Run Tests
       # Pass test environment variables as JSON string
       testEnvs: >
         '[
@@ -79,6 +80,7 @@ jobs:
           "ENVIRONMENT=dev",
           "TESTING=1",
         ]'
+      # Todos: This part is not working the testEnvs is not being taken up corrrectly by Run Tests
       # Pass test directories as JSON string
       tests: >
         '[
@@ -90,6 +92,7 @@ jobs:
         [
           {
             "name": "backend-aimingmedai",
+            "ports" : ["8004:80"],
             "env": {
               "ENVIRONMENT": "dev",
               "TESTING": "1",
@@ -100,6 +103,7 @@ jobs:
           },
           {
             "name": "frontend-aimingmedai",
+            "ports" : ["3004:80"],
             "depends_on": ["backend-aimingmedai"],
             "env": {
               "ENVIRONMENT": "dev",

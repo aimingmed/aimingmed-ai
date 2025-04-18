@@ -97,6 +97,7 @@ jobs:
           foreach ($img in $images) {
               $serviceName = $img.name
               $svc = @{}
+              $svc.container_name = $serviceName
               $svc.image = "${{ steps.tags.outputs.image_repo_path }}/$($serviceName):${{ env.TAG }}" # Use run_id tag
 
               if ($img.depends_on) {
@@ -108,6 +109,9 @@ jobs:
                   $svc.environment = @{}
               }
               $svc.networks = @("test") # Assign service to the custom network
+              if ($img.ports) {
+                  $svc.ports = $img.ports
+              }
 
               $compose.services.$serviceName = $svc
           }
@@ -143,11 +147,17 @@ jobs:
           echo "Compose logs after wait:"
           docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" logs
 
+      - name: Check Docker Services Health
+        run: |
+          echo "Checking health of Docker services..."
+          # Check if all services are healthy
+          docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" ps 
+
       - name: Run Tests
         shell: bash
         run: |
           TEST_DIRS='["tests/integration/backend"]'
-          TEST_ENVS_JSON='["FRONTEND_URL=http://frontend:80","BACKEND_URL=http://backend:80","ENVIRONMENT=dev","TESTING=1"]'
+          TEST_ENVS_JSON='["ENVIRONMENT=dev","TESTING=1"]'
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
