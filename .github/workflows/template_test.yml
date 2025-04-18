@@ -232,6 +232,7 @@ jobs:
           name: JUnit Test Report
           path: ${{ runner.temp }}/${{ inputs.testResultsFilename }} # Path to the JUnit XML file
           reporter: java-junit # Specify the format
+          token: ${{ secrets.TEST-REPORT }}
 
       - name: Print Service Logs on Failure or Success
         if: always() # Always run this step
