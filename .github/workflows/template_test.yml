@@ -233,12 +233,10 @@ jobs:
       # Optional: Publish Test Results for UI display
       - name: Publish Test Results
         if: always() # Run even if tests fail
-        uses: dorny/test-reporter@v1
+        uses: benjamine/report-junit-xml-action@v1
         with:
-          name: JUnit Test Report
-          path: ${{ runner.temp }}/${{ inputs.testResultsFilename }} # Path to the JUnit XML file
-          reporter: java-junit # Specify the format
-          token: ${{ secrets.repo_test_1 }}
+          report_file: ${{ runner.temp }}/${{ inputs.testResultsFilename }}
+          github_token: ${{ secrets.repo_test_1 }}
 
       - name: Docker Compose Down
         if: always() # Always run cleanup
