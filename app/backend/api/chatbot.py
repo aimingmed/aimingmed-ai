@@ -10,8 +10,8 @@ from .utils import ConnectionManager
 router = APIRouter()
 
 # Load environment variables
-os.environ["DEEPSEEK_API_KEY"] = config("DEEPSEEK_API_KEY", cast=str)
-os.environ["TAVILY_API_KEY"] = config("TAVILY_API_KEY", cast=str)
+os.environ["DEEPSEEK_API_KEY"] = config("DEEPSEEK_API_KEY", cast=str, default="sk-XXXXXXXXXX")
+os.environ["TAVILY_API_KEY"] = config("TAVILY_API_KEY", cast=str, default="tvly-dev-wXXXXXX")
 
 # Initialize the DeepSeek chat model
 llm_chat = ChatDeepSeek(
