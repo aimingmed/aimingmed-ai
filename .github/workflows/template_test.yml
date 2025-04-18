@@ -153,6 +153,16 @@ jobs:
           # Check if all services are healthy
           docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" ps 
 
+      - name: Debug Network Connections
+        if: always() # Run even if previous steps failed
+        run: |
+          echo "--- Inspecting network: test-network-${{ github.run_id }} ---"
+          docker network inspect test-network-${{ github.run_id }}
+          echo "--- Listing running containers (docker ps) ---"
+          docker ps -a --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Networks}}"
+          echo "--- Backend Service Logs ---"
+          docker logs backend-aimingmedai || echo "Could not get logs for backend-aimingmedai" # Replace with actual service name
+
       - name: Run Tests
         shell: bash
         run: |
