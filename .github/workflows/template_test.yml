@@ -167,7 +167,7 @@ jobs:
         shell: bash
         run: |
           TEST_DIRS='["tests/integration/backend"]'
-          TEST_ENVS_JSON='["ENVIRONMENT=dev","TESTING=1"]'
+          TEST_ENVS_JSON='["ENVIRONMENT=dev","TESTING=1", "DEEPSEEK_API_KEY=sk-XXXXXXXXXX","TAVILY_API_KEY=tvly-dev-wXXXXXX"]'
           RESULTS_PATH="${{ inputs.testResultsPath }}"
           STAGING_DIR="${{ runner.temp }}/test-results" # Use runner temp dir for results
           mkdir -p "$STAGING_DIR"
