@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: develop 
 
@@ -232,11 +232,10 @@ jobs:
 
       # Optional: Publish Test Results for UI display
       - name: Publish Test Results
-        if: always() # Run even if tests fail
-        uses: benjamine/report-junit-xml-action@v1
+        if: success() || failure() # always run even if the previous step fails
+        uses: mikepenz/action-junit-report@v5
         with:
-          report_file: ${{ runner.temp }}/${{ inputs.testResultsFilename }}
-          github_token: ${{ secrets.repo_test_1 }}
+          report_paths: ${{ runner.temp }}/${{ inputs.testResultsFilename }}
 
       - name: Docker Compose Down
         if: always() # Always run cleanup
