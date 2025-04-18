@@ -238,7 +238,7 @@ jobs:
           name: JUnit Test Report
           path: ${{ runner.temp }}/${{ inputs.testResultsFilename }} # Path to the JUnit XML file
           reporter: java-junit # Specify the format
-          token: ${{ secrets.repo_test_1  }}
+          token: ${{ secrets.repo_test_1 }}
 
       - name: Docker Compose Down
         if: always() # Always run cleanup
