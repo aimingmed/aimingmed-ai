@@ -140,6 +140,12 @@ jobs:
           cat "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" # Print generated compose file (check secrets aren't exposed if public)
           docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" up -d
 
+      - name: Print Service Logs on Failure or Success
+        if: always() # Always run this step
+        run: |
+          echo "Printing final logs from Docker Compose services..."
+          docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" logs
+
       - name: Wait for Services
         run: |
           echo "Waiting 60 seconds for services to initialize..."
@@ -233,12 +239,6 @@ jobs:
           path: ${{ runner.temp }}/${{ inputs.testResultsFilename }} # Path to the JUnit XML file
           reporter: java-junit # Specify the format
           token: ${{ secrets.TEST-REPORT }}
-
-      - name: Print Service Logs on Failure or Success
-        if: always() # Always run this step
-        run: |
-          echo "Printing final logs from Docker Compose services..."
-          docker compose -f "${{ steps.create_compose.outputs.COMPOSE_FILE_PATH }}" logs
 
       - name: Docker Compose Down
         if: always() # Always run cleanup
