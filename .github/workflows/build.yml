@@ -1,142 +1,115 @@
-name: CI - build
+name: Build + CI
 
+# Triggers: Equivalent to ADO trigger block
 on:
   pull_request:
     branches:
       - develop
-      - main
+    # paths:
+    #   - 'app/**'
+    #   - '.github/workflows/**'
 
-env:
-  IMAGE: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')/aimingmed-ai-backend
+# Concurrency control: Ensures only one run per branch at a time, Equivalent to batch: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # This job defines the matrix and calls the reusable workflow for each image build
   build:
-    name: Build Docker Image
-    runs-on: ubuntu-latest
+    name: Build ${{ matrix.image_config.IMAGE_NAME }}
+    # Define necessary permissions if needed (e.g., for GitHub Packages)
     permissions:
       contents: read
-      packages: write
-    steps:
-      - name: Check disk space
-        run: df -h
-      - name: Cleanup Docker resources
-        if: always()
-        run: |
-          docker system prune -a -f --volumes
-      - name: Remove unnecessary files
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-      - name: Check disk space
-        run: df -h
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: develop
-      - name: Log in to GitHub Packages
-        run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Pull image
-        run: |
-          docker pull ${{ env.IMAGE }}:latest || true
-      - name: Check disk space
-        if: always()
-        run: df -h
-      - name: Build image
-        run: |
-          docker build \
-            --cache-from ${{ env.IMAGE }}:latest \
-            --tag ${{ env.IMAGE }}:latest \
-            --file ./app/backend/Dockerfile.prod \
-            "./app/backend"
-      - name: Push image
-        run: |
-          docker push ${{ env.IMAGE }}:latest
-      - name: Check disk space
-        if: always()
-        run: df -h
-      - name: Cleanup Docker resources
-        if: always()
-        run: docker system prune -a -f --volumes
-      - name: Check disk space
-        if: always()
-        run: df -h
+      packages: write # If pushing to GitHub Packages registry
 
+    # Use secrets defined in the repository/organization settings
+    # 'inherit' makes all secrets available to the called workflow
+    secrets: inherit
+
+    # Define the matrix strategy based on the 'images' object from the original ADO build.yml
+    strategy:
+      fail-fast: false # Don't cancel other matrix jobs if one fails
+      matrix:
+        # We wrap the image configuration in a single 'image_config' key
+        # to pass it more easily if needed, but primarily access sub-keys directly.
+        image_config:
+          - IMAGE_NAME: backend-aimingmedai
+            BUILD_CONTEXT: ./app/backend
+            DOCKERFILE: ./app/backend/Dockerfile.prod
+          - IMAGE_NAME: frontend-aimingmedai
+            BUILD_CONTEXT: ./app/frontend
+            DOCKERFILE: ./app/frontend/Dockerfile.test
+          - IMAGE_NAME: tests-aimingmedai
+            BUILD_CONTEXT: ./app/tests
+            DOCKERFILE: ./app/tests/Dockerfile
+            
+    # Call the reusable workflow
+    uses: ./.github/workflows/template_build.yml # Path to the reusable workflow file
+    # Pass inputs required by the reusable workflow
+    with:
+      # Pass values from the matrix context and global env
+      project_name: aimingmed-ai
+      image_repo: "ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')"
+      image_name: ${{ matrix.image_config.IMAGE_NAME }}
+      build_context: ${{ matrix.image_config.BUILD_CONTEXT }}
+      dockerfile: ${{ matrix.image_config.DOCKERFILE }}
+      build_id: ${{ github.run_id }}
+      commit_sha: ${{ github.sha }}
+
+  # TEST Stage equivalent
   test:
-    name: Test Docker Image
-    runs-on: ubuntu-latest
-    needs: build
+    name: Run Integration Tests
+    needs: build # Ensure this job runs after the build job
+    # Define necessary permissions if needed (e.g., for GitHub Packages)
     permissions:
       contents: read
-      packages: write
-    steps:
-      - name: Check disk space
-        run: df -h
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: develop
-      - name: Log in to GitHub Packages
-        run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Cleanup Docker resources
-        if: always()
-        run: docker system prune -a -f --volumes
-      - name: Remove unnecessary files
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-      - name: Pull image
-        run: |
-          docker pull ${{ env.IMAGE }}:latest || true
-      - name: Check disk space
-        if: always()
-        run: df -h
-      - name: Build image
-        run: |
-          docker build \
-            --cache-from ${{ env.IMAGE }}:latest \
-            --tag ${{ env.IMAGE }}:latest \
-            --file ./app/backend/Dockerfile.prod \
-            "./app/backend"
-      - name: Check disk space
-        if: always()
-        run: df -h
-      - name: Validate Docker image
-        run: docker inspect ${{ env.IMAGE }}:latest
-      - name: Run container
-        run: |
-          docker run \
-            -d \
-            -e DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }} \
-            -e TAVILY_API_KEY=${{ secrets.TAVILY_API_KEY }} \
-            -e ENVIRONMENT=dev \
-            -e TESTING=0 \
-            -e PORT=8765 \
-            -e LOG_LEVEL=DEBUG \
-            --name backend-backend \
-            -p 8004:8765 \
-            ${{ env.IMAGE }}:latest
-      - name: Monitor memory usage
-        run: free -h
-      - name: Get container logs
-        if: failure()
-        run: docker logs backend-backend
-      - name: Pytest
-        run: docker exec backend-backend pipenv run python -m pytest .
-      # - name: Flake8
-      #   run: docker exec backend-backend pipenv run python -m flake8 .
-      # - name: Black
-      #   run: docker exec backend-backend pipenv run python -m black . --check
-      - name: isort
-        if: always()
-        run: docker exec backend-backend pipenv run python -m isort . --check-only
-      - name: Cleanup container at end of job
-        if: always()
-        run: docker stop backend-backend || true && docker rm backend-backend || true
+      packages: write # If pushing to GitHub Packages registry
+    # Call the reusable workflow for testing
+    uses: ./.github/workflows/template_test.yml # Path to the reusable workflow file
+    with:
+      projectName: aimingmed-ai
+      image_repo: ghcr.io/$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')
+      testContainerName: tests-aimingmedai
+      # Todos: This part is not working the testEnvs is not being taken up corrrectly by Run Tests
+      # Pass test environment variables as JSON string
+      testEnvs: >
+        '[
+          "FRONTEND_URL=http://frontend:80",
+          "BACKEND_URL=http://backend:80",
+          "ENVIRONMENT=dev",
+          "TESTING=1",
+        ]'
+      # Todos: This part is not working the testEnvs is not being taken up corrrectly by Run Tests
+      # Pass test directories as JSON string
+      tests: >
+        '[
+          "tests/integration/backend",
+        ]'
+      # Pass image definitions for compose setup as JSON string
+      # Sensitive values should be passed via secrets and referenced within the template
+      images: >
+        [
+          {
+            "name": "backend-aimingmedai",
+            "ports" : ["8004:80"],
+            "env": {
+              "ENVIRONMENT": "dev",
+              "TESTING": "1",
+              "DEEPSEEK_API_KEY": "sk-XXXXXXXXXX",
+              "TAVILY_API_KEY": "tvly-dev-wXXXXXX"
+      
+            }
+          },
+          {
+            "name": "frontend-aimingmedai",
+            "ports" : ["3004:80"],
+            "depends_on": ["backend-aimingmedai"],
+            "env": {
+              "ENVIRONMENT": "dev",
+              "TESTING": "1",
+              "LOG_LEVEL": "DEBUG"
+            }
+          }
+        ]
+

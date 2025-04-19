@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+pytest = "*"
+requests = "*"
+jsonschema = "*"
+evonik-dummy = "*"
+pyrsistent = "*"
+pyjwt = "*"
+pydantic = "*"
+websockets = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
+
+[dev-packages]
+autopep8 = "*"
+
+[requires]
+python_version = "3.11"

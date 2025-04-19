@@ -5,18 +5,14 @@
 # pull official base image
 FROM python:3.11-slim-bookworm AS builder
 
-
 # set working directory
 WORKDIR /usr/src/app
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-
-# install system dependencies
-# RUN apt-get update && apt-get -y install build-essential \
-# && apt-get clean \
-# && rm -rf /var/lib/apt/lists/*
+ENV ENVIRONMENT=dev
+ENV TESTING=1
 
 # install python dependencies
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
@@ -25,10 +21,11 @@ RUN pipenv install --deploy --dev
 
 # add app
 COPY . /usr/src/app
-# RUN pipenv run pip install black==23.12.1 flake8==7.0.0 isort==5.13.2
-# RUN pipenv run flake8 .
-# RUN pipenv run black --exclude=migrations . --check
-# RUN pipenv run isort . --check-only
+RUN export DEEPSEEK_API_KEY=sk-XXXXXXXXXX; export TAVILY_API_KEY=tvly-dev-wXXXXXX;\
+    pipenv run pytest tests --disable-warnings
+RUN pipenv run flake8 .
+RUN pipenv run black --exclude=migrations . --check
+RUN pipenv run isort . --check-only
 
 #########
 # FINAL #
@@ -56,16 +53,11 @@ ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=prod
 ENV TESTING=0
 
-# install system dependencies
-# RUN apt-get update \
-#    && apt-get -y install build-essential \
-#   && apt-get clean \
-#&& rm -rf /var/lib/apt/lists/*
 
 # install python dependencies
-COPY --from=builder /usr/src/app/Pipfile .
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
-RUN pipenv install --deploy --dev
+COPY --from=builder /usr/src/app/Pipfile .
+RUN pipenv install --deploy
 RUN pipenv run pip install "uvicorn[standard]==0.26.0"
 
 # add app
@@ -78,7 +70,7 @@ RUN chown -R app:app $APP_HOME
 USER app
 
 # expose the port the app runs on
-EXPOSE 8765
+EXPOSE 80
 
 # run uvicorn
-CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "8765"]
+CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "80"]

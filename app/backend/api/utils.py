@@ -22,4 +22,3 @@ class ConnectionManager:
         json_message = {"type": "message", "payload": message}
         for connection in self.active_connections:
             await connection.send_text(json.dumps(json_message))
-

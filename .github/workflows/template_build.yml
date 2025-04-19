@@ -1,0 +1,102 @@
+name: Reusable Docker Build Template
+
+# Define inputs expected from the calling workflow
+on:
+  workflow_call:
+    inputs:
+      project_name:
+        required: true
+        type: string
+      image_repo:
+        required: true
+        type: string
+      image_name:
+        required: true
+        type: string
+      build_context:
+        required: true
+        type: string
+      dockerfile:
+        required: true
+        type: string
+      build_id:
+        required: true
+        type: string # Pass run_id as string
+      commit_sha:
+        required: true
+        type: string
+
+
+jobs:
+  build-single-image:
+    # This job executes the build steps for the specific image configuration passed via inputs
+    name: Build ${{ inputs.image_name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120 # From original ADO template
+
+    steps:
+      - name: Checkout repo
+        # Checks out the repository code
+        uses: actions/checkout@v3
+        with:
+          ref: develop # Use the branch specified in the calling workflow
+
+      - name: Set up Docker Buildx
+        # Recommended for improved build features and caching
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Packages
+        run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin ghcr.io
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Nuke Docker Cache
+        # Equivalent to CmdLine@2 Nuke Cache
+        run: |
+          echo "Pruning Docker system..."
+          docker system prune -a -f --volumes
+
+      - name: Remove unnecessary files
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Check disk space
+        run: df -h
+
+      - name: Define Image Tags
+        # Define tags consistently using inputs
+        id: tags
+        run: |
+          echo "image_repo_path=${{ inputs.image_repo }}/${{ inputs.image_name }}" >> $GITHUB_OUTPUT
+          echo "tag_build_id=${{ inputs.build_id }}" >> $GITHUB_OUTPUT
+          echo "tag_commit_sha=${{ inputs.commit_sha }}" >> $GITHUB_OUTPUT
+
+      - name: Pull Latest Image for Cache
+        # Pulls the latest tag if it exists
+        continue-on-error: true # Mimics '|| true'
+        run: |
+          echo "Attempting to pull latest image for cache: ${{ steps.tags.outputs.image_repo_path }}:latest"
+          docker pull ${{ steps.tags.outputs.image_repo_path }}:latest || true
+
+      - name: Build Final Image
+        run: |
+          echo "Building final image without intermediate cache..."
+          docker build \
+            -f ${{ inputs.dockerfile }} \
+            --pull \
+            --cache-from type=registry,ref=${{ steps.tags.outputs.image_repo_path }}:latest \
+            -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }} \
+            -t ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }} \
+            -t ${{ steps.tags.outputs.image_repo_path }}:latest \
+            ${{ inputs.build_context }}
+
+      - name: Push Final Image Tags
+        # Pushes the final tags (build id, commit sha, latest)
+        run: |
+          echo "Pushing final image tags..."
+          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_build_id }}
+          docker push ${{ steps.tags.outputs.image_repo_path }}:${{ steps.tags.outputs.tag_commit_sha }}
+          docker push ${{ steps.tags.outputs.image_repo_path }}:latest
