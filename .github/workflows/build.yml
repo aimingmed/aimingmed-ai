@@ -65,6 +65,7 @@ jobs:
     permissions:
       contents: read
       packages: write # If pushing to GitHub Packages registry
+      checks: write # If you want to update checks
     # Call the reusable workflow for testing
     uses: ./.github/workflows/template_test.yml # Path to the reusable workflow file
     with:
