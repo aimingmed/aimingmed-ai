@@ -56,12 +56,12 @@ jobs:
         cat Pipfile
         pipenv sync -d
 
-    - name: Run tests with pytest
+    - name: Run tests with pytest and generate coverage report
       working-directory: ${{ env.WORKING_DIR }}
       run: |
         pipenv run pytest --version
         # Use the environment variables defined above for paths
-        pipenv run pytest -v -s -o log_cli=true --junitxml=results.xml --cov=${{ env.SRC_PATH }} --cov-report=xml:${{ env.TESTS_COVERAGE_REPORT_PATH }} ${{ env.TESTS_PATH }}
+        pipenv run pytest -v -s -o log_cli=true --junitxml=results.xml --cov=${{ env.SRC_PATH }} --cov-report term ${{ env.TESTS_PATH }}
         echo "Listing results in working directory:"
         ls -al ${{ github.workspace }}/${{ env.WORKING_DIR }}
 
@@ -82,11 +82,3 @@ jobs:
       with:
         name: ${{ inputs.projectName }}-coverage-report
         path: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
-
-    - name: Report Coverage
-      uses: dawidd6/action-coverage-report@v1.6.0
-      with:
-        path: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
-        output_format: markdown
-        github_token: ${{ github.token }}
-        minimum_coverage: 0
