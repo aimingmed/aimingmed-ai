@@ -83,13 +83,10 @@ jobs:
         name: ${{ inputs.projectName }}-coverage-report
         path: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
 
-    - name: Upload coverage to Codecov
-      
-      uses: codecov/codecov-action@v4
+    - name: Report Coverage
+      uses: dawidd6/action-coverage-report@v1.6.0
       with:
-        files: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
-        fail_ci_if_error: true
-        flags: unittests
-        name: codecov-coverage
-        token: ${{ secrets.CODECOV_TOKEN }} # Set this secret in your repository settings
-      
+        path: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
+        output_format: markdown
+        github_token: ${{ github.token }}
+        minimum_coverage: 0
