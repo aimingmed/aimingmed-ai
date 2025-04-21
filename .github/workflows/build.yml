@@ -1,4 +1,4 @@
-name: Build + CI
+name: Unittest and Build + CI 
 
 # Triggers: Equivalent to ADO trigger block
 on:
@@ -12,9 +12,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  run_backend_unittests:
+    name: Run Backend unit tests
+    permissions:
+      checks: write
+    # Call the reusable workflow for unit tests
+    uses: ./.github/workflows/template_unit_pytest.yml
+    # Pass parameters as inputs to the reusable workflow
+    with:
+      projectName: Backend # Value defined in original variables
+      workingDir: app/backend
+      testsFolderName: tests
+    # secrets: inherit # Inherit secrets from the parent workflow
+
   # This job defines the matrix and calls the reusable workflow for each image build
   build:
-    needs: run_backend_tests
+    needs: run_backend_unittests
     name: Build ${{ matrix.image_config.IMAGE_NAME }}
     # Define necessary permissions if needed (e.g., for GitHub Packages)
     permissions:
