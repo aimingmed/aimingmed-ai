@@ -5,9 +5,6 @@ on:
   pull_request:
     branches:
       - develop
-    # paths:
-    #   - 'app/**'
-    #   - '.github/workflows/**'
 
 # Concurrency control: Ensures only one run per branch at a time, Equivalent to batch: true
 concurrency:

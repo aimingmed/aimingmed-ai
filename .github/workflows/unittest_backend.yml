@@ -1,0 +1,19 @@
+name: Unit Tests - Backend
+
+# Triggers: Equivalent to ADO trigger block
+on:
+  pull_request:
+    branches:
+      - develop
+
+
+jobs:
+  run_backend_tests:
+    name: Run Backend unit tests
+    uses: ./.github/workflows/template_unit_pytest.yml
+    # Pass parameters as inputs to the reusable workflow
+    with:
+      projectName: Backend # Value defined in original variables
+      workingDir: app/backend
+      testsFolderName: tests
+    # secrets: inherit # Inherit secrets from the parent workflow
