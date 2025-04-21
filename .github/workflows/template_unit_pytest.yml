@@ -84,10 +84,9 @@ jobs:
         path: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        version: "v0.1.15"
         files: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
         fail_ci_if_error: true
 
