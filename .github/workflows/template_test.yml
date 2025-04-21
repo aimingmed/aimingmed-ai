@@ -238,13 +238,6 @@ jobs:
           report_paths: ${{ runner.temp }}/${{ inputs.testResultsFilename }}
           include_passed: true
 
-      - name: PublishCodeCoverageResults
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          report_files: ${{ runner.temp }}/${{ inputs.testResultsFilename }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          minimum_coverage: 50
-
       - name: Docker Compose Down
         if: always() # Always run cleanup
         run: |
