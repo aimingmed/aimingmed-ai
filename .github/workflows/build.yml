@@ -14,6 +14,7 @@ concurrency:
 jobs:
   # This job defines the matrix and calls the reusable workflow for each image build
   build:
+    needs: run_backend_tests
     name: Build ${{ matrix.image_config.IMAGE_NAME }}
     # Define necessary permissions if needed (e.g., for GitHub Packages)
     permissions:
