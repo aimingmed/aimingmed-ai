@@ -1,0 +1,93 @@
+name: Reusable Unit Test with Pytest Template
+
+on:
+  workflow_call:
+    inputs:
+      projectName:
+        description: 'Name of the project'
+        required: true
+        type: string
+      workingDir:
+        description: 'Working directory for the component'
+        required: true
+        type: string
+      testsFolderName:
+        description: 'Tests folder name'
+        required: true
+        type: string
+
+jobs:
+  build_and_test:
+    name: Build and Test ${{ inputs.projectName }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    # Define environment variables based on inputs, similar to Azure variables
+    env:
+      SRC_PATH: ${{ github.workspace }}/${{ inputs.workingDir }}
+      TESTS_PATH: ${{ github.workspace }}/${{ inputs.workingDir }}/${{ inputs.testsFolderName }}
+      TESTS_RESULTS_PATH: ${{ github.workspace }}/${{ inputs.workingDir }}/results.xml
+      TESTS_COVERAGE_REPORT_PATH: ${{ github.workspace }}/${{ inputs.workingDir }}/coverage.xml
+      # Use the working directory input for commands that need it
+      WORKING_DIR: ${{ inputs.workingDir }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5 # Use latest stable version
+      with:
+        python-version: '3.11'
+
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pipenv
+
+    - name: Install environment including dev dependencies
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "Listing files:"
+        ls -al
+        echo "Pipfile content:"
+        cat Pipfile
+        pipenv sync -d
+
+    - name: Run tests with pytest
+      working-directory: ${{ env.WORKING_DIR }}
+      run: |
+        pipenv run pytest --version
+        # Use the environment variables defined above for paths
+        pipenv run pytest -v -s -o log_cli=true --junitxml=results.xml --cov=${{ env.SRC_PATH }} --cov-report=xml:${{ env.TESTS_COVERAGE_REPORT_PATH }} ${{ env.TESTS_PATH }}
+        echo "Listing results in working directory:"
+        ls -al ${{ github.workspace }}/${{ env.WORKING_DIR }}
+
+
+    # Use a popular action for publishing test results for better GitHub integration
+    - name: Publish Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure() # always run even if tests fail
+      with:
+        name: ${{ inputs.projectName }} Test Results
+        path: ${{ env.TESTS_RESULTS_PATH }}
+        reporter: java-junit # Specify JUnit format
+
+    # Upload coverage report as an artifact
+    - name: Upload coverage report artifact
+      uses: actions/upload-artifact@v4
+      if: success() || failure() # always run
+      with:
+        name: ${{ inputs.projectName }}-coverage-report
+        path: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ${{ env.TESTS_COVERAGE_REPORT_PATH }}
+        fail_ci_if_error: true
+
+      
