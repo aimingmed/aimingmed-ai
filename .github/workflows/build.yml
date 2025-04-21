@@ -16,6 +16,7 @@ jobs:
     name: Run Backend unit tests
     permissions:
       checks: write
+    secrets: inherit # Inherit secrets from the parent workflow
     # Call the reusable workflow for unit tests
     uses: ./.github/workflows/template_unit_pytest.yml
     # Pass parameters as inputs to the reusable workflow
