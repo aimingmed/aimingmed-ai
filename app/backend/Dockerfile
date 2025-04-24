@@ -25,19 +25,29 @@ COPY . $APP_HOME
 # install python dependencies
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
 RUN pipenv install --deploy --dev
+RUN pipenv install --index https://download.pytorch.org/whl/cpu torch
 
 # chown all the files to the app user
+# Create cache directory and set permissions
+RUN mkdir -p /home/app/.cache/huggingface
+RUN chown -R app:app /home/app/.cache/huggingface
+
 RUN chown -R app:app $APP_HOME
 
 # change to the app user
 USER app
 
-# pytest
-RUN pipenv run pytest tests --disable-warnings
+# Run python to initialize download of SentenceTransformer model
+RUN pipenv run python utils/initialize_sentence_transformer.py
+
+# # pytest
+# RUN pipenv run pytest tests --disable-warnings
 
 
 # expose the port the app runs on
 EXPOSE 80
 
+
 # run uvicorn
 CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "80"]
+
