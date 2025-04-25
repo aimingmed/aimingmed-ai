@@ -44,8 +44,8 @@ USER app
 # Run python to initialize download of SentenceTransformer model
 RUN pipenv run python utils/initialize_sentence_transformer.py
 
-# # pytest
-# RUN pipenv run pytest tests --disable-warnings
+# pytest
+RUN pipenv run pytest tests --disable-warnings
 
 # expose the port the app runs on
 EXPOSE 80
