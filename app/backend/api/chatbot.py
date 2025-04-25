@@ -487,7 +487,6 @@ async def websocket_endpoint(websocket: WebSocket):
                                 }),
                                 websocket,
                             )
-                    print("Final output:", chunk)
                     # Send a final 'done' message to signal completion
                     await manager.send_personal_message(
                         json.dumps({"type": "done"}),
