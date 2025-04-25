@@ -54,7 +54,7 @@ jobs:
         ls -al
         echo "Pipfile content:"
         cat Pipfile
-        pipenv sync -d
+        pipenv install --dev --skip-lock
 
     - name: Run tests with pytest
       working-directory: ${{ env.WORKING_DIR }}

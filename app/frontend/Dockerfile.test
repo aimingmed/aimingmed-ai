@@ -12,7 +12,7 @@ ARG ENV_FILE=.env.test
 COPY ${ENV_FILE} /usr/src/app/.env
 
 # Copy dependency files and install dependencies
-RUN npm install && npm i --save-dev @types/jest
+RUN npm install && npm install --save-dev @types/jest
 
 EXPOSE 80
 CMD [ "npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "80" ]

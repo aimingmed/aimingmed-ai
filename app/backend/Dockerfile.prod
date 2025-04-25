@@ -13,12 +13,23 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=dev
 ENV TESTING=1
+ENV CUDA_VISIBLE_DEVICES=""
 
 # install python dependencies
 RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
 COPY ./Pipfile .
-RUN pipenv install --deploy --dev
+RUN pipenv install --deploy --dev --no-cache-dir
+RUN pipenv run pip install torch --force-reinstall --no-cache-dir
 
+# remove all cached files not needed to save space
+RUN pip cache purge
+RUN rm -rf /root/.cache
+
+# Create cache directory and set permissions
+RUN mkdir -p /home/app/.cache/huggingface
+RUN chown -R app:app /home/app/.cache/huggingface
+RUN chown -R app:app $APP_HOME
+# 
 # add app
 COPY . /usr/src/app
 RUN export DEEPSEEK_API_KEY=sk-XXXXXXXXXX; export TAVILY_API_KEY=tvly-dev-wXXXXXX;\

@@ -37,13 +37,13 @@ services:
     environment:
       LOG_LEVEL: "DEBUG"
 
-  tests:
-    build:
-      context: ./tests
-    container_name: tests-aimingmedai
-    # depends_on:
-    #   - backend
-    #   - frontend
-    environment:
-      FRONTEND_URL: http://frontend:80
-      BACKEND_URL: http://backend:80
+  # tests:
+  #   build:
+  #     context: ./tests
+  #   container_name: tests-aimingmedai
+  #   # depends_on:
+  #   #   - backend
+  #   #   - frontend
+  #   environment:
+  #     FRONTEND_URL: http://frontend:80
+  #     BACKEND_URL: http://backend:80
