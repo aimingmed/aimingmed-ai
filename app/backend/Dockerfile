@@ -45,11 +45,11 @@ USER app
 RUN pipenv run python utils/initialize_sentence_transformer.py
 
 # pytest
-RUN pipenv run pytest tests --disable-warnings
+RUN export DEEPSEEK_API_KEY=sk-XXXXXXXXXX; export TAVILY_API_KEY=tvly-dev-wXXXXXX;\
+    pipenv run pytest tests --disable-warnings
 
 # expose the port the app runs on
 EXPOSE 80
-
 
 # run uvicorn
 CMD ["pipenv", "run", "uvicorn", "main:app", "--reload", "--workers", "1", "--host", "0.0.0.0", "--port", "80"]
