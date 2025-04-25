@@ -473,7 +473,7 @@ async def websocket_endpoint(websocket: WebSocket):
                                     json.dumps({
                                         "type": "intermediate",
                                         "title": "Step",
-                                        "payload": str(chunk)[:500]
+                                        "payload": str(chunk)
                                     }),
                                     websocket,
                                 )
@@ -483,10 +483,11 @@ async def websocket_endpoint(websocket: WebSocket):
                                 json.dumps({
                                     "type": "intermediate",
                                     "title": "Step",
-                                    "payload": str(chunk)[:500]
+                                    "payload": str(chunk)
                                 }),
                                 websocket,
                             )
+                    print("Final output:", chunk)
                     # Send a final 'done' message to signal completion
                     await manager.send_personal_message(
                         json.dumps({"type": "done"}),
