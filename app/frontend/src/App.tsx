@@ -12,6 +12,7 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -33,6 +34,8 @@ const App: React.FC = () => {
               return [...prevMessages, { sender: 'bot', text: data.payload }];
             }
           });
+        } else if (data.type === 'done') {
+          setIsLoading(false);
         } else {
           console.error('Unexpected message format:', data);
         }
@@ -54,6 +57,7 @@ const App: React.FC = () => {
 
   const sendMessage = () => {
     if (newMessage.trim() !== '') {
+      setIsLoading(true);
       const message = [{ role: 'user', content: newMessage }];
       setMessages((prevMessages) => [...prevMessages, { sender: 'user', text: newMessage }]);
       socket?.send(JSON.stringify(message));
@@ -80,9 +84,10 @@ const App: React.FC = () => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             className="flex-grow p-2 border border-gray-300 rounded-lg mr-2"
+            disabled={isLoading}
           />
-          <button onClick={sendMessage} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
-            Send
+          <button onClick={sendMessage} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg" disabled={isLoading}>
+            {isLoading ? 'Sending...' : 'Send'}
           </button>
         </div>
       </div>

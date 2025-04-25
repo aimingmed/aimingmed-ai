@@ -430,12 +430,20 @@ async def websocket_endpoint(websocket: WebSocket):
                     isinstance(data_json, list)
                     and len(data_json) > 0
                     and "content" in data_json[0]
-                ):
-                    async for chunk in llm.astream(data_json[0]["content"]):
+                ):  
+                    inputs = {
+                        "question": data_json[0]["content"]
+                    }
+                    async for chunk in app.astream(inputs):
                         await manager.send_personal_message(
-                            json.dumps({"type": "message", "payload": chunk.content}),
+                            json.dumps({"type": "message", "payload": chunk.get("content", str(chunk))}),
                             websocket,
                         )
+                    # Send a final 'done' message to signal completion
+                    await manager.send_personal_message(
+                        json.dumps({"type": "done"}),
+                        websocket,
+                    )
                 else:
                     await manager.send_personal_message(
                         "Invalid message format", websocket

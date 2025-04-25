@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.11-slim-bullseye
+FROM python:3.11-slim-bookworm
 
 # create directory for the app user
 RUN mkdir -p /home/app
@@ -18,16 +18,20 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV ENVIRONMENT=dev
 ENV TESTING=1
+ENV CUDA_VISIBLE_DEVICES=""
+
+COPY Pipfile $APP_HOME/
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
+RUN pipenv install --deploy --dev --no-cache-dir
+RUN pipenv run pip install torch --force-reinstall --no-cache-dir
+
+# remove all cached files not needed to save space
+RUN pip cache purge
+RUN rm -rf /root/.cache
 
 # add app
 COPY . $APP_HOME
 
-# install python dependencies
-RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pipenv && rm -rf ~/.cache/pip
-RUN pipenv install --deploy --dev
-RUN pipenv install --index https://download.pytorch.org/whl/cpu torch
-
-# chown all the files to the app user
 # Create cache directory and set permissions
 RUN mkdir -p /home/app/.cache/huggingface
 RUN chown -R app:app /home/app/.cache/huggingface
@@ -42,7 +46,6 @@ RUN pipenv run python utils/initialize_sentence_transformer.py
 
 # # pytest
 # RUN pipenv run pytest tests --disable-warnings
-
 
 # expose the port the app runs on
 EXPOSE 80
