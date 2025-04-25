@@ -19,7 +19,7 @@ langchain-community = "==0.3.19"
 tavily-python = "==0.5.1"
 langchain_huggingface = "==0.1.2"
 langchain-deepseek = "==0.1.2"
-torch = "==2.1.0"
+torch = "*"
 sentence-transformers = "*"
 
 [dev-packages]
