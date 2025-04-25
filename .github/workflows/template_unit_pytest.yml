@@ -55,6 +55,8 @@ jobs:
         echo "Pipfile content:"
         cat Pipfile
         pipenv install --dev --skip-lock
+        echo "Listing installed packages:"
+        pipenv graph
 
     - name: Run tests with pytest
       working-directory: ${{ env.WORKING_DIR }}
