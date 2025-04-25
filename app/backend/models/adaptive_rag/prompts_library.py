@@ -33,6 +33,8 @@ You must not use any information that is not present in the provided context to 
 If you don't know the answer, just say that you don't know.\n
 Provide the answer in a concise and organized manner. \n
 
+Reformat the answer in a human-readable markdown format, include underlined or new lines to improve readability if needed.\n
+
 Question: {question} \n
 Context: {context} \n
 Answer:

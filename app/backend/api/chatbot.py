@@ -435,10 +435,58 @@ async def websocket_endpoint(websocket: WebSocket):
                         "question": data_json[0]["content"]
                     }
                     async for chunk in app.astream(inputs):
-                        await manager.send_personal_message(
-                            json.dumps({"type": "message", "payload": chunk.get("content", str(chunk))}),
-                            websocket,
-                        )
+                        # Determine if chunk is intermediate or final
+                        if isinstance(chunk, dict):
+                            if len(chunk) == 1:
+                                step_name = list(chunk.keys())[0]
+                                step_value = chunk[step_name]
+                                # Check if this step contains the final answer
+                                if isinstance(step_value, dict) and 'generation' in step_value:
+                                    await manager.send_personal_message(
+                                        json.dumps({
+                                            "type": "final",
+                                            "title": "Answer",
+                                            "payload": step_value['generation']
+                                        }),
+                                        websocket,
+                                    )
+                                else:
+                                    await manager.send_personal_message(
+                                        json.dumps({
+                                            "type": "intermediate",
+                                            "title": step_name.replace('_', ' ').title(),
+                                            "payload": str(step_value)
+                                        }),
+                                        websocket,
+                                    )
+                            elif 'generation' in chunk:
+                                await manager.send_personal_message(
+                                    json.dumps({
+                                        "type": "final",
+                                        "title": "Answer",
+                                        "payload": chunk['generation']
+                                    }),
+                                    websocket,
+                                )
+                            else:
+                                await manager.send_personal_message(
+                                    json.dumps({
+                                        "type": "intermediate",
+                                        "title": "Step",
+                                        "payload": str(chunk)[:500]
+                                    }),
+                                    websocket,
+                                )
+                        else:
+                            # Fallback for non-dict chunks
+                            await manager.send_personal_message(
+                                json.dumps({
+                                    "type": "intermediate",
+                                    "title": "Step",
+                                    "payload": str(chunk)[:500]
+                                }),
+                                websocket,
+                            )
                     # Send a final 'done' message to signal completion
                     await manager.send_personal_message(
                         json.dumps({"type": "done"}),
